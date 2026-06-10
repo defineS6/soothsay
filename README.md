@@ -103,3 +103,11 @@ docker run -d \
 - 代理接口不记录 Authorization、请求正文或响应正文。
 
 更多部署细节见 [docs/deployment.md](docs/deployment.md)。
+
+## 致谢
+
+- [linux.do](https://linux.do) 社区
+
+## License
+
+MIT
