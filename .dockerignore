@@ -1,0 +1,13 @@
+.git
+.claude
+.codex
+node_modules
+dist
+dist-server
+data
+.env
+.env.*
+npm-debug.log*
+pnpm-debug.log*
+coverage
+openspec

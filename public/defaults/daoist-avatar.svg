@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="云松道长头像">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d8f3dc"/>
+      <stop offset="1" stop-color="#31572c"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="240" rx="32" fill="url(#g)"/>
+  <circle cx="120" cy="86" r="38" fill="#f7e1c3"/>
+  <path d="M58 205c9-48 33-73 62-73s53 25 62 73H58Z" fill="#244a32"/>
+  <path d="M76 96c18-48 70-48 88 0-28-14-60-14-88 0Z" fill="#233d2f"/>
+  <path d="M82 116c19 24 57 24 76 0" fill="none" stroke="#7b4f2a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M92 79h56" stroke="#f6f1de" stroke-width="9" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,39 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-server/
+coverage/
+
+# 本地运行数据与上传文件
+data/
+
+# 本地环境变量与密钥
+.env
+.env.*
+!.env.example
+
+# 日志与调试输出
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 本地助手/测试工作目录
+.claude/
+.codex/
+.serena/
+.playwright-mcp/
+openspec/
+
+# 临时文件
+*.tmp
+*.temp
