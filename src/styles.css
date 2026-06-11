@@ -157,6 +157,16 @@ button:disabled {
   font-weight: 600;
 }
 
+.brand-button small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .top-actions {
   display: flex;
   align-items: center;

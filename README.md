@@ -1,5 +1,7 @@
 # Soothsay
 
+当前版本：`0.2.0`
+
 Soothsay 是一个可自托管的命盘解读应用。它在浏览器本地完成生辰档案、命盘和对话记录管理，通过用户自带的模型凭据调用 LLM，并提供后台维护大师角色、角色提示词、头像背景和自定义体系。
 
 Demo：[https://soothsay.onrender.com/](https://soothsay.onrender.com/)

@@ -79,6 +79,7 @@ const PILLAR_LABELS: Record<PillarName, string> = {
 };
 
 const FIVE_ELEMENTS: FiveElement[] = ['木', '火', '土', '金', '水'];
+const appVersion = __APP_VERSION__;
 
 const personas = ref<PersonaSkin[]>([]);
 const engines = ref<PersonaEngine[]>([]);
@@ -1317,6 +1318,7 @@ onMounted(async () => {
       <button class="brand-button" type="button" @click="activePanel = 'reading'">
         <Wand2 :size="22" aria-hidden="true" />
         <span>Soothsay</span>
+        <small>v{{ appVersion }}</small>
       </button>
       <nav class="top-actions" aria-label="主导航">
         <button class="text-trigger" type="button" title="选大师" @click="masterModalOpen = true">
