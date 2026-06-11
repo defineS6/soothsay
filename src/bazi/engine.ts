@@ -5,21 +5,29 @@ import {
   STEM_ELEMENTS,
   createFiveElementStats,
   getBranchRelations,
+  getChartRelations,
   getElementRelation
 } from './relations';
+import { getShenSha } from './shensha';
 import {
   formatCivilDateTime,
   getTrueSolarCorrectionMinutes,
   normalizeCivilDateTime
 } from './solar-time';
+import { createBaziStrength } from './strength';
 import type {
   BaziChart,
   BirthDateTimeInput,
+  BirthSolarTerm,
+  ChartFactor,
   CivilDateTime,
   DailyFortuneBasis,
   FiveElement,
+  LiuNian,
+  MinorLuck,
   Pillar,
-  PillarName
+  PillarName,
+  SolarTermInfo
 } from './types';
 
 const PILLAR_LABELS: Record<PillarName, string> = {
@@ -30,6 +38,7 @@ const PILLAR_LABELS: Record<PillarName, string> = {
 };
 
 const PILLAR_NAMES: PillarName[] = ['year', 'month', 'day', 'hour'];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function assertBirthInput(input: BirthDateTimeInput) {
   if (input.calendarType === 'bazi') return;
@@ -92,6 +101,22 @@ function assertGanZhi(value: string, label: string) {
   return normalized;
 }
 
+function callFunction<T>(source: any, methodName: string, ...args: unknown[]): T | null {
+  const fn = source?.[methodName];
+  if (typeof fn !== 'function') return null;
+  try {
+    return fn.apply(source, args) as T;
+  } catch {
+    return null;
+  }
+}
+
+function callString(source: any, methodName: string) {
+  const value = callFunction<unknown>(source, methodName);
+  if (value == null) return null;
+  return String(value);
+}
+
 function ensureArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
   if (value == null) return [];
@@ -101,9 +126,15 @@ function ensureArray(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function getXunKongByGanZhi(ganZhi: string) {
+  const index = LunarUtil.JIA_ZI.indexOf(ganZhi);
+  if (index < 0) return '';
+  return LunarUtil.XUN_KONG[Math.floor(index / 10)] ?? '';
+}
+
 function buildPillar(name: PillarName, eightChar: any): Pillar {
   const methodKey = name === 'hour' ? 'Time' : name[0].toUpperCase() + name.slice(1);
-  const ganZhi = String(eightChar[`get${methodKey}`]());
+  const ganZhi = String(callFunction(eightChar, `get${methodKey}`) ?? '');
   const { gan, zhi } = splitGanZhi(ganZhi);
   return {
     name,
@@ -111,13 +142,15 @@ function buildPillar(name: PillarName, eightChar: any): Pillar {
     gan,
     zhi,
     ganZhi,
-    hiddenGan: ensureArray(eightChar[`get${methodKey}HideGan`]?.() ?? HIDDEN_STEMS[zhi]),
-    hiddenGanTenGods: ensureArray(eightChar[`get${methodKey}ShiShenZhi`]()),
-    tenGodOfGan: String(eightChar[`get${methodKey}ShiShenGan`]()),
-    naYin: String(eightChar[`get${methodKey}NaYin`]()),
-    diShi: String(eightChar[`get${methodKey}DiShi`]()),
+    hiddenGan: ensureArray(callFunction(eightChar, `get${methodKey}HideGan`) ?? HIDDEN_STEMS[zhi]),
+    hiddenGanTenGods: ensureArray(callFunction(eightChar, `get${methodKey}ShiShenZhi`)),
+    tenGodOfGan: callString(eightChar, `get${methodKey}ShiShenGan`) ?? '',
+    naYin: callString(eightChar, `get${methodKey}NaYin`) ?? '',
+    diShi: callString(eightChar, `get${methodKey}DiShi`) ?? '',
     ganElement: STEM_ELEMENTS[gan],
-    zhiElement: BRANCH_ELEMENTS[zhi]
+    zhiElement: BRANCH_ELEMENTS[zhi],
+    shenSha: [],
+    xunKong: callString(eightChar, `get${methodKey}XunKong`) ?? getXunKongByGanZhi(ganZhi)
   };
 }
 
@@ -147,19 +180,85 @@ function buildManualPillar(name: PillarName, ganZhi: string, dayGan: string): Pi
     naYin: LunarUtil.NAYIN[normalized],
     diShi: getDiShi(dayGan, zhi),
     ganElement: STEM_ELEMENTS[gan],
-    zhiElement: BRANCH_ELEMENTS[zhi]
+    zhiElement: BRANCH_ELEMENTS[zhi],
+    shenSha: [],
+    xunKong: getXunKongByGanZhi(normalized)
   };
 }
 
-function buildUnavailableLuck(): BaziChart['luck'] {
+function applyShenSha(pillars: Record<PillarName, Pillar>) {
+  const ctx = {
+    yearBranch: pillars.year.zhi,
+    monthBranch: pillars.month.zhi,
+    dayStem: pillars.day.gan,
+    dayBranch: pillars.day.zhi
+  };
+  for (const name of PILLAR_NAMES) {
+    pillars[name].shenSha = getShenSha(pillars[name], ctx);
+  }
+}
+
+function buildUnavailableLuck(reason = '需出生时间计算'): BaziChart['luck'] {
   return {
-    startAgeText: '需出生时间计算',
+    startAgeText: reason,
     startYear: 0,
     startMonth: 0,
     startDay: 0,
     startSolarDate: '',
     direction: 'forward',
-    cycles: []
+    cycles: [],
+    minorLuck: [],
+    unavailableReason: reason
+  };
+}
+
+function mapLiuNian(items: any[] | null): LiuNian[] {
+  return (items ?? []).map((item) => ({
+    year: Number(callFunction(item, 'getYear') ?? 0),
+    age: Number(callFunction(item, 'getAge') ?? 0),
+    index: Number(callFunction(item, 'getIndex') ?? 0),
+    ganZhi: callString(item, 'getGanZhi') ?? ''
+  }));
+}
+
+function mapMinorLuck(items: any[] | null): MinorLuck[] {
+  return (items ?? []).map((item) => ({
+    year: Number(callFunction(item, 'getYear') ?? 0),
+    age: Number(callFunction(item, 'getAge') ?? 0),
+    index: Number(callFunction(item, 'getIndex') ?? 0),
+    ganZhi: callString(item, 'getGanZhi') ?? ''
+  }));
+}
+
+function buildLuck(eightChar: any, input: BirthDateTimeInput): BaziChart['luck'] {
+  const gender = input.gender === 'male' ? 1 : 0;
+  const yun = callFunction<any>(eightChar, 'getYun', gender, 2);
+  if (!yun) return buildUnavailableLuck('当前历法库无法计算起运、大运、流年与小运');
+
+  const rawCycles = callFunction<any[]>(yun, 'getDaYun', 9) ?? [];
+  const minorSource = rawCycles.find((cycle) => Number(callFunction(cycle, 'getIndex') ?? -1) === 0);
+  const startSolar = callFunction<any>(yun, 'getStartSolar');
+  const cycles = rawCycles
+    .map((cycle) => ({
+      index: Number(callFunction(cycle, 'getIndex') ?? 0),
+      ganZhi: callString(cycle, 'getGanZhi') ?? '',
+      startYear: Number(callFunction(cycle, 'getStartYear') ?? 0),
+      endYear: Number(callFunction(cycle, 'getEndYear') ?? 0),
+      startAge: Number(callFunction(cycle, 'getStartAge') ?? 0),
+      endAge: Number(callFunction(cycle, 'getEndAge') ?? 0),
+      liuNian: mapLiuNian(callFunction<any[]>(cycle, 'getLiuNian'))
+    }))
+    .filter((cycle) => cycle.index > 0);
+
+  return {
+    startAgeText: `${callFunction(yun, 'getStartYear') ?? 0}岁${callFunction(yun, 'getStartMonth') ?? 0}个月${callFunction(yun, 'getStartDay') ?? 0}天`,
+    startYear: Number(callFunction(yun, 'getStartYear') ?? 0),
+    startMonth: Number(callFunction(yun, 'getStartMonth') ?? 0),
+    startDay: Number(callFunction(yun, 'getStartDay') ?? 0),
+    startSolarDate: startSolar && typeof startSolar.toYmd === 'function' ? String(startSolar.toYmd()) : '',
+    direction: callFunction<boolean>(yun, 'isForward') ? 'forward' : 'backward',
+    cycles,
+    minorLuck: mapMinorLuck(callFunction<any[]>(minorSource, 'getXiaoYun'))
   };
 }
 
@@ -170,30 +269,84 @@ function applyZiHourPolicy(eightChar: any, parts: CivilDateTime, input: BirthDat
   }
 }
 
-function buildLuck(eightChar: any, input: BirthDateTimeInput) {
-  const gender = input.gender === 'male' ? 1 : 0;
-  const yun = eightChar.getYun(gender, 2);
-  const cycles = yun
-    .getDaYun(9)
-    .map((cycle: any) => ({
-      index: cycle.getIndex(),
-      ganZhi: String(cycle.getGanZhi()),
-      startYear: cycle.getStartYear(),
-      endYear: cycle.getEndYear(),
-      startAge: cycle.getStartAge(),
-      endAge: cycle.getEndAge()
-    }))
-    .filter((cycle: { index: number }) => cycle.index > 0);
+function civilToDate(value: CivilDateTime) {
+  return new Date(value.year, value.month - 1, value.day, value.hour, value.minute, value.second);
+}
 
+function solarToCivil(solar: any): CivilDateTime | null {
+  if (!solar) return null;
+  const year = callFunction<number>(solar, 'getYear');
+  const month = callFunction<number>(solar, 'getMonth');
+  const day = callFunction<number>(solar, 'getDay');
+  if (year == null || month == null || day == null) return null;
   return {
-    startAgeText: `${yun.getStartYear()}岁${yun.getStartMonth()}个月${yun.getStartDay()}天`,
-    startYear: yun.getStartYear(),
-    startMonth: yun.getStartMonth(),
-    startDay: yun.getStartDay(),
-    startSolarDate: String(yun.getStartSolar().toYmd()),
-    direction: yun.isForward() ? 'forward' : 'backward',
-    cycles
-  } as const;
+    year,
+    month,
+    day,
+    hour: Number(callFunction(solar, 'getHour') ?? 0),
+    minute: Number(callFunction(solar, 'getMinute') ?? 0),
+    second: Number(callFunction(solar, 'getSecond') ?? 0)
+  };
+}
+
+function buildSolarTermInfo(term: any, birthTime: CivilDateTime, direction: 'since' | 'until'): SolarTermInfo | null {
+  const name = callString(term, 'getName');
+  const solar = callFunction<any>(term, 'getSolar');
+  const civil = solarToCivil(solar);
+  if (!name || !civil) return null;
+  const diffMs =
+    direction === 'since'
+      ? civilToDate(birthTime).getTime() - civilToDate(civil).getTime()
+      : civilToDate(civil).getTime() - civilToDate(birthTime).getTime();
+  const dateTime = solar && typeof solar.toYmdHms === 'function' ? String(solar.toYmdHms()) : formatCivilDateTime(civil);
+  return {
+    name,
+    dateTime,
+    daysFromBirth: Math.max(0, Math.round((diffMs / DAY_MS) * 10) / 10)
+  };
+}
+
+function buildBirthSolarTerm(lunar: any, birthTime: CivilDateTime): BirthSolarTerm {
+  const previous = buildSolarTermInfo(callFunction(lunar, 'getPrevJieQi'), birthTime, 'since');
+  const current = buildSolarTermInfo(callFunction(lunar, 'getCurrentJieQi'), birthTime, 'since') ?? previous;
+  const next = buildSolarTermInfo(callFunction(lunar, 'getNextJieQi'), birthTime, 'until');
+  return {
+    current,
+    previous,
+    next,
+    note: previous && next ? '出生所在节气按上一节气推定' : '当前历法库未返回完整节气信息'
+  };
+}
+
+function buildChartFactor(value: string | null, missingNote: string): ChartFactor {
+  return value ? { value } : { value: null, note: missingNote };
+}
+
+function buildDatetimeFactors(eightChar: any, lunar: any, birthTime: CivilDateTime) {
+  const missingNote = '当前历法库未返回该命盘要素';
+  return {
+    taiYuan: buildChartFactor(callString(eightChar, 'getTaiYuan'), missingNote),
+    taiXi: buildChartFactor(callString(eightChar, 'getTaiXi'), missingNote),
+    mingGong: buildChartFactor(callString(eightChar, 'getMingGong'), missingNote),
+    shenGong: buildChartFactor(callString(eightChar, 'getShenGong'), missingNote),
+    birthSolarTerm: buildBirthSolarTerm(lunar, birthTime)
+  };
+}
+
+function buildManualFactors() {
+  const factor = { value: null, note: '需出生时间' };
+  return {
+    taiYuan: factor,
+    taiXi: factor,
+    mingGong: factor,
+    shenGong: factor,
+    birthSolarTerm: {
+      current: null,
+      next: null,
+      previous: null,
+      note: '需出生时间'
+    } satisfies BirthSolarTerm
+  };
 }
 
 function buildDailyBasis(dayMasterElement: FiveElement, pillars: Record<PillarName, Pillar>, now: Date): DailyFortuneBasis {
@@ -228,6 +381,47 @@ function buildDailyBasis(dayMasterElement: FiveElement, pillars: Record<PillarNa
   };
 }
 
+function buildPromptLuck(luck: BaziChart['luck'], now: Date) {
+  const year = now.getFullYear();
+  const current = luck.cycles.find((cycle) => year >= cycle.startYear && year <= cycle.endYear);
+  return {
+    ...luck,
+    cycles: luck.cycles.map((cycle) => {
+      const { liuNian, ...base } = cycle;
+      if (current && current.index === cycle.index) {
+        return { ...base, liuNian: liuNian ?? [] };
+      }
+      const first = liuNian?.[0];
+      const last = liuNian?.[liuNian.length - 1];
+      return {
+        ...base,
+        liuNianSummary: first && last ? `${first.year}-${last.year}（${liuNian?.length ?? 0}年）` : '未生成流年明细'
+      };
+    })
+  };
+}
+
+function buildPromptFacts(chart: BaziChart, now: Date, solarDateTime: string | null) {
+  return {
+    source: chart.source,
+    solarDateTime,
+    lunarDateText: chart.lunarDateText,
+    pillars: chart.pillars,
+    dayMaster: chart.dayMaster,
+    fiveElementStats: chart.fiveElementStats,
+    taiYuan: chart.taiYuan,
+    taiXi: chart.taiXi,
+    mingGong: chart.mingGong,
+    shenGong: chart.shenGong,
+    birthSolarTerm: chart.birthSolarTerm,
+    strength: chart.strength,
+    chartRelations: chart.chartRelations,
+    luck: buildPromptLuck(chart.luck, now),
+    daily: chart.daily,
+    notes: chart.notes
+  };
+}
+
 export function createBaziChart(input: BirthDateTimeInput, now = new Date()): BaziChart {
   assertBirthInput(input);
 
@@ -240,11 +434,16 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
     const dayGan = splitGanZhi(dayGanZhi).gan;
     const pillarArray = PILLAR_NAMES.map((name) => buildManualPillar(name, directPillars[name], dayGan));
     const pillars = Object.fromEntries(pillarArray.map((pillar) => [pillar.name, pillar])) as Record<PillarName, Pillar>;
+    applyShenSha(pillars);
     const dayMaster = {
       gan: pillars.day.gan,
       element: STEM_ELEMENTS[pillars.day.gan]
     };
-    const notes = ['已使用手动输入的四柱八字；因缺少出生日期时间，无法计算真太阳时、农历日期、起运岁数与大运序列。'];
+    const manualFactors = buildManualFactors();
+    const notes = [
+      '已使用手动输入的四柱八字；因缺少出生日期时间，无法计算真太阳时、农历日期、起运岁数与大运序列。',
+      '胎元、胎息、命宫、身宫、节气、流年与小运需出生时间计算。'
+    ];
     const chart: BaziChart = {
       input,
       source: 'manual-pillars',
@@ -264,22 +463,18 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
       dayMaster,
       fiveElementStats: createFiveElementStats(pillarArray),
       luck: buildUnavailableLuck(),
+      ...manualFactors,
+      strength: createBaziStrength(pillars, {
+        source: 'manual-pillars',
+        birthTime: null
+      }),
+      chartRelations: getChartRelations(pillars),
       daily: buildDailyBasis(dayMaster.element, pillars, now),
       notes,
       promptFacts: {}
     };
 
-    chart.promptFacts = {
-      source: 'manual-pillars',
-      solarDateTime: null,
-      lunarDateText: chart.lunarDateText,
-      pillars: chart.pillars,
-      dayMaster: chart.dayMaster,
-      fiveElementStats: chart.fiveElementStats,
-      luck: chart.luck,
-      daily: chart.daily,
-      notes: chart.notes
-    };
+    chart.promptFacts = buildPromptFacts(chart, now, null);
 
     return chart;
   }
@@ -303,10 +498,12 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
 
   const pillarArray = PILLAR_NAMES.map((name) => buildPillar(name, eightChar));
   const pillars = Object.fromEntries(pillarArray.map((pillar) => [pillar.name, pillar])) as Record<PillarName, Pillar>;
+  applyShenSha(pillars);
   const dayMaster = {
     gan: pillars.day.gan,
     element: STEM_ELEMENTS[pillars.day.gan]
   };
+  const factors = buildDatetimeFactors(eightChar, lunar, correctedTime);
   const notes = input.location
     ? [`已按${input.location.name ?? '出生地'}经度 ${input.location.longitude}° 校正真太阳时。`]
     : ['未提供出生地经度，已使用钟表时间排盘；时柱可能因真太阳时未校正存在偏差。'];
@@ -334,21 +531,19 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
     dayMaster,
     fiveElementStats: createFiveElementStats(pillarArray),
     luck: buildLuck(eightChar, input),
+    ...factors,
+    strength: createBaziStrength(pillars, {
+      source: 'datetime',
+      birthTime: correctedTime,
+      daysFromPreviousTerm: factors.birthSolarTerm.previous?.daysFromBirth
+    }),
+    chartRelations: getChartRelations(pillars),
     daily: buildDailyBasis(dayMaster.element, pillars, now),
     notes,
     promptFacts: {}
   };
 
-  chart.promptFacts = {
-    solarDateTime: formatCivilDateTime(correctedTime),
-    lunarDateText: chart.lunarDateText,
-    pillars: chart.pillars,
-    dayMaster: chart.dayMaster,
-    fiveElementStats: chart.fiveElementStats,
-    luck: chart.luck,
-    daily: chart.daily,
-    notes: chart.notes
-  };
+  chart.promptFacts = buildPromptFacts(chart, now, formatCivilDateTime(correctedTime));
 
   return chart;
 }

@@ -3,6 +3,9 @@ export type Gender = 'male' | 'female';
 export type ZiHourPolicy = 'lateZiNextDay' | 'lateZiSameDay';
 export type PillarName = 'year' | 'month' | 'day' | 'hour';
 export type FiveElement = '木' | '火' | '土' | '金' | '水';
+export type HiddenStemLevel = '本气' | '中气' | '余气';
+export type SeasonalState = '旺' | '相' | '休' | '囚' | '死';
+export type StrengthConclusion = '身强' | '身弱' | '均衡';
 
 export interface BirthDateTimeInput {
   calendarType: CalendarType;
@@ -43,6 +46,29 @@ export interface Pillar {
   diShi: string;
   ganElement: FiveElement;
   zhiElement: FiveElement;
+  shenSha: string[];
+  xunKong: string;
+}
+
+export interface WeightedHiddenStem {
+  stem: string;
+  element: FiveElement;
+  level: HiddenStemLevel;
+  weight: number;
+}
+
+export interface LiuNian {
+  year: number;
+  age: number;
+  index: number;
+  ganZhi: string;
+}
+
+export interface MinorLuck {
+  year: number;
+  age: number;
+  index: number;
+  ganZhi: string;
 }
 
 export interface LuckCycle {
@@ -52,6 +78,7 @@ export interface LuckCycle {
   endYear: number;
   startAge: number;
   endAge: number;
+  liuNian?: LiuNian[];
 }
 
 export interface TrueSolarTimeResult {
@@ -82,6 +109,81 @@ export interface DailyFortuneBasis {
   relationsToNatal: DayRelation[];
 }
 
+export interface ChartFactor {
+  value: string | null;
+  note?: string;
+}
+
+export interface SolarTermInfo {
+  name: string;
+  dateTime: string;
+  daysFromBirth?: number;
+}
+
+export interface BirthSolarTerm {
+  current: SolarTermInfo | null;
+  next: SolarTermInfo | null;
+  previous?: SolarTermInfo | null;
+  note?: string;
+}
+
+export interface MonthCommand {
+  branch: string;
+  stem: string;
+  element: FiveElement;
+  level: HiddenStemLevel;
+  source: '节气推算' | '月支本气' | '降级';
+  daysFromPreviousTerm?: number;
+}
+
+export interface StrengthDimension {
+  matched: boolean;
+  score: number;
+  reason: string;
+}
+
+export interface DayMasterStrength {
+  conclusion: StrengthConclusion;
+  score: number;
+  deLing: StrengthDimension;
+  deDi: StrengthDimension;
+  deShi: StrengthDimension;
+}
+
+export interface ChartStrength {
+  weightedEnergy: Record<FiveElement, number>;
+  percentages: Record<FiveElement, number>;
+  monthCommand: MonthCommand;
+  seasonalStates: Record<FiveElement, SeasonalState>;
+  dayMasterState: SeasonalState;
+  dayMasterStrength: DayMasterStrength;
+}
+
+export interface ChartStemRelation {
+  type: '五合' | '相冲';
+  name: string;
+  pillars: PillarName[];
+  stems: string[];
+  ganZhi: string[];
+  description: string;
+  element?: FiveElement;
+}
+
+export interface ChartBranchRelation {
+  type: '六合' | '六冲' | '相刑' | '相害' | '半合' | '自刑' | '三合局' | '三会局';
+  name: string;
+  pillars: PillarName[];
+  branches: string[];
+  ganZhi: string[];
+  description: string;
+  element?: FiveElement;
+}
+
+export interface ChartRelations {
+  stems: ChartStemRelation[];
+  branches: ChartBranchRelation[];
+}
+
 export interface BaziChart {
   input: BirthDateTimeInput;
   source: 'datetime' | 'manual-pillars';
@@ -102,7 +204,16 @@ export interface BaziChart {
     startSolarDate: string;
     direction: 'forward' | 'backward';
     cycles: LuckCycle[];
+    minorLuck?: MinorLuck[];
+    unavailableReason?: string;
   };
+  taiYuan?: ChartFactor;
+  taiXi?: ChartFactor;
+  mingGong?: ChartFactor;
+  shenGong?: ChartFactor;
+  birthSolarTerm?: BirthSolarTerm;
+  strength?: ChartStrength;
+  chartRelations?: ChartRelations;
   daily: DailyFortuneBasis;
   notes: string[];
   promptFacts: Record<string, unknown>;

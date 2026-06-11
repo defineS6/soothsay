@@ -19,7 +19,7 @@ import {
   Wand2
 } from 'lucide-vue-next';
 import { createBaziChart } from '@/bazi/engine';
-import type { BaziChart, BirthDateTimeInput, PillarName } from '@/bazi/types';
+import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, PillarName } from '@/bazi/types';
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
 import { fetchPersonas } from '@/services/personas';
 import { streamFortuneReading, testCredentials } from '@/services/proxy';
@@ -70,6 +70,15 @@ type MarkdownBlock =
   | { type: 'list'; ordered: boolean; items: MarkdownInline[][] }
   | { type: 'code'; code: string; language: string }
   | { type: 'hr' };
+
+const PILLAR_LABELS: Record<PillarName, string> = {
+  year: '年柱',
+  month: '月柱',
+  day: '日柱',
+  hour: '时柱'
+};
+
+const FIVE_ELEMENTS: FiveElement[] = ['木', '火', '土', '金', '水'];
 
 const personas = ref<PersonaSkin[]>([]);
 const engines = ref<PersonaEngine[]>([]);
@@ -224,11 +233,61 @@ const pillarRows = computed(() => {
   const names: PillarName[] = ['year', 'month', 'day', 'hour'];
   return names.map((name) => chart.value!.pillars[name]);
 });
+const chartFactorRows = computed(() => {
+  if (!chart.value) return [];
+  return [
+    { label: '胎元', value: formatChartFactor(chart.value.taiYuan) },
+    { label: '胎息', value: formatChartFactor(chart.value.taiXi) },
+    { label: '命宫', value: formatChartFactor(chart.value.mingGong) },
+    { label: '身宫', value: formatChartFactor(chart.value.shenGong) }
+  ];
+});
+const strengthRows = computed(() => {
+  const strength = chart.value?.strength;
+  if (!strength) return [];
+  return FIVE_ELEMENTS.map((element) => ({
+    element,
+    energy: strength.weightedEnergy[element],
+    percent: strength.percentages[element],
+    state: strength.seasonalStates[element]
+  }));
+});
+const chartRelationRows = computed(() => {
+  const relations = chart.value?.chartRelations;
+  if (!relations) return [];
+  return [
+    ...relations.stems.map((item) => ({
+      key: `stem-${item.type}-${item.ganZhi.join('-')}-${item.name}`,
+      type: item.type,
+      description: item.description,
+      pillars: formatRelationPillars(item.pillars)
+    })),
+    ...relations.branches.map((item) => ({
+      key: `branch-${item.type}-${item.ganZhi.join('-')}-${item.name}`,
+      type: item.type,
+      description: item.description,
+      pillars: formatRelationPillars(item.pillars)
+    }))
+  ];
+});
+const currentLuckIndex = computed(() => {
+  const cycles = chart.value?.luck.cycles ?? [];
+  const year = new Date().getFullYear();
+  return cycles.find((cycle) => year >= cycle.startYear && year <= cycle.endYear)?.index ?? cycles[0]?.index ?? 0;
+});
 const hasCredentials = computed(() => Boolean(credentialsDraft.baseUrl && credentialsDraft.apiKey && credentialsDraft.model));
 const adminEditing = computed(() => Boolean(adminForm.id));
 const adminEngineDraftActive = computed(
   () => Boolean(adminEngineForm.id) && adminForm.engineId === adminEngineForm.id && !isBuiltinEngineId(adminForm.engineId)
 );
+
+function formatChartFactor(factor?: ChartFactor) {
+  return factor?.value || factor?.note || '需出生时间';
+}
+
+function formatRelationPillars(names: PillarName[]) {
+  return names.map((name) => PILLAR_LABELS[name]).join('、');
+}
 
 function engineById(id: string) {
   return engines.value.find((engine) => engine.id === id);
@@ -1629,12 +1688,87 @@ onMounted(async () => {
                 <strong>{{ pillar.ganZhi }}</strong>
                 <small>{{ pillar.tenGodOfGan }} · {{ pillar.naYin }}</small>
                 <small>藏干 {{ pillar.hiddenGan.join('、') }}</small>
+                <small v-if="pillar.xunKong">空亡 {{ pillar.xunKong }}</small>
+                <small v-if="pillar.shenSha?.length" class="pillar-shensha">神煞 {{ pillar.shenSha.join('、') }}</small>
               </article>
             </div>
             <div class="stats-grid">
               <span v-for="(value, key) in chart.fiveElementStats" :key="key">{{ key }} {{ value }}</span>
             </div>
             <p class="note-line">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · 起运 {{ chart.luck.startAgeText }}</p>
+            <section class="chart-section">
+              <div class="chart-section-title">
+                <span>命盘要素</span>
+              </div>
+              <div class="chart-mini-grid">
+                <span v-for="item in chartFactorRows" :key="item.label" class="chart-mini-item">
+                  <small>{{ item.label }}</small>
+                  <strong>{{ item.value }}</strong>
+                </span>
+              </div>
+              <div class="term-line">
+                <span>所在节气 {{ chart.birthSolarTerm?.current?.name ?? chart.birthSolarTerm?.note ?? '需出生时间' }}</span>
+                <span v-if="chart.birthSolarTerm?.current?.dateTime">{{ chart.birthSolarTerm.current.dateTime }}</span>
+                <span v-if="chart.birthSolarTerm?.next">下一节气 {{ chart.birthSolarTerm.next.name }} {{ chart.birthSolarTerm.next.dateTime }}</span>
+              </div>
+            </section>
+            <section v-if="chart.strength" class="chart-section">
+              <div class="chart-section-title">
+                <span>五行旺衰</span>
+                <strong>{{ chart.strength.dayMasterStrength.conclusion }}</strong>
+              </div>
+              <p class="note-line">
+                司令 {{ chart.strength.monthCommand.stem }}{{ chart.strength.monthCommand.level }} · 日主{{ chart.strength.dayMasterState }} · {{ chart.strength.dayMasterStrength.score }}分
+              </p>
+              <div class="strength-list">
+                <div v-for="item in strengthRows" :key="item.element" class="strength-row">
+                  <span>{{ item.element }}</span>
+                  <div class="strength-bar" aria-hidden="true">
+                    <i :style="{ width: `${item.percent}%` }"></i>
+                  </div>
+                  <small>{{ item.percent }}% · {{ item.energy }} · {{ item.state }}</small>
+                </div>
+              </div>
+            </section>
+            <section class="chart-section">
+              <div class="chart-section-title">
+                <span>命局关系</span>
+                <strong>{{ chartRelationRows.length }}</strong>
+              </div>
+              <div v-if="chartRelationRows.length" class="relation-list">
+                <span v-for="item in chartRelationRows" :key="item.key">
+                  <strong>{{ item.type }}</strong>
+                  <small>{{ item.pillars }}</small>
+                  {{ item.description }}
+                </span>
+              </div>
+              <p v-else class="note-line">未见明显干支关系。</p>
+            </section>
+            <section class="chart-section">
+              <div class="chart-section-title">
+                <span>大运流年</span>
+                <strong>{{ chart.luck.cycles.length }}</strong>
+              </div>
+              <p v-if="!chart.luck.cycles.length" class="note-line">{{ chart.luck.unavailableReason ?? chart.luck.startAgeText }}</p>
+              <div v-else class="luck-list">
+                <details v-for="cycle in chart.luck.cycles" :key="cycle.index" class="luck-cycle" :open="cycle.index === currentLuckIndex">
+                  <summary>
+                    <span>{{ cycle.ganZhi }}</span>
+                    <small>{{ cycle.startYear }}-{{ cycle.endYear }} · {{ cycle.startAge }}-{{ cycle.endAge }}岁</small>
+                  </summary>
+                  <div class="liu-nian-grid">
+                    <span v-for="liuNian in cycle.liuNian ?? []" :key="`${cycle.index}-${liuNian.year}`">
+                      {{ liuNian.year }} {{ liuNian.ganZhi }}
+                      <small>{{ liuNian.age }}岁</small>
+                    </span>
+                  </div>
+                </details>
+              </div>
+              <div v-if="chart.luck.minorLuck?.length" class="minor-luck-line">
+                <span>小运</span>
+                <small>{{ chart.luck.minorLuck.map((item) => `${item.year}${item.ganZhi}`).join('、') }}</small>
+              </div>
+            </section>
             <p v-for="note in chart.notes" :key="note" class="note-line">{{ note }}</p>
             <div class="actions-row">
               <button class="primary-button" type="button" :disabled="streaming" @click="requestReading('bazi_full')">
