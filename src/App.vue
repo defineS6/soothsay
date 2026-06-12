@@ -5,7 +5,9 @@ import {
   CalendarDays,
   Check,
   Copy,
+  House,
   KeyRound,
+  LayoutDashboard,
   Lock,
   MessageCircle,
   RefreshCw,
@@ -13,6 +15,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  ScrollText,
   Trash2,
   Upload,
   UserRound,
@@ -59,6 +62,7 @@ import {
 
 type Panel = 'reading' | 'settings' | 'admin';
 type CropField = 'avatarFile' | 'backgroundFile';
+type MobileTab = 'home' | 'chart' | 'reading' | 'mine';
 type MarkdownInline = {
   type: 'text' | 'strong' | 'em' | 'code';
   text: string;
@@ -88,6 +92,7 @@ const chart = ref<BaziChart | null>(null);
 const sharedProfile = ref<SharedProfile | null>(null);
 const roleHistory = ref<RoleHistory | null>(null);
 const activePanel = ref<Panel>('reading');
+const mobileTab = ref<MobileTab>('home');
 const loading = ref(false);
 const appMessage = ref('');
 const readingText = ref('');
@@ -276,11 +281,52 @@ const currentLuckIndex = computed(() => {
   const year = new Date().getFullYear();
   return cycles.find((cycle) => year >= cycle.startYear && year <= cycle.endYear)?.index ?? cycles[0]?.index ?? 0;
 });
+const currentLuckCycle = computed(() => {
+  const cycles = chart.value?.luck.cycles ?? [];
+  return cycles.find((cycle) => cycle.index === currentLuckIndex.value) ?? cycles[0] ?? null;
+});
+const mobileActiveTab = computed<MobileTab>(() => (activePanel.value === 'reading' ? mobileTab.value : 'mine'));
+const mobileGreeting = computed(() => {
+  const hour = new Date().getHours();
+  if (hour < 11) return '早安，愿你今天顺心如意。';
+  if (hour < 18) return '午安，愿你此刻心定事明。';
+  return '晚安，愿你今晚安然从容。';
+});
+const mobileDailyMeta = computed(() => {
+  const daily = chart.value?.daily;
+  if (!daily) return '命盘生成后显示今日干支';
+  return `今日 ${daily.ganZhi} · ${daily.relationToDayMaster}`;
+});
+const mobileRecentSummary = computed(() => {
+  const message = [...historyMessages.value].reverse().find((item) => item.role === 'assistant');
+  if (!message) return '';
+  return message.content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/[#>*_`-]/g, '')
+    .replace(/\[|\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 96);
+});
+const mobileChartHighlights = computed(() => {
+  if (!chart.value) return [];
+  return [
+    { label: '日主', value: `${chart.value.dayMaster.gan}${chart.value.dayMaster.element}` },
+    { label: '旺衰', value: chart.value.strength?.dayMasterStrength.conclusion ?? '待定' },
+    { label: '大运', value: currentLuckCycle.value?.ganZhi ?? chart.value.luck.startAgeText },
+    { label: '关系', value: `${chartRelationRows.value.length}项` }
+  ];
+});
 const hasCredentials = computed(() => Boolean(credentialsDraft.baseUrl && credentialsDraft.apiKey && credentialsDraft.model));
 const adminEditing = computed(() => Boolean(adminForm.id));
 const adminEngineDraftActive = computed(
   () => Boolean(adminEngineForm.id) && adminForm.engineId === adminEngineForm.id && !isBuiltinEngineId(adminForm.engineId)
 );
+
+function showMobileTab(tab: MobileTab) {
+  activePanel.value = 'reading';
+  mobileTab.value = tab;
+}
 
 function formatChartFactor(factor?: ChartFactor) {
   return factor?.value || factor?.note || '需出生时间';
@@ -1315,12 +1361,15 @@ onMounted(async () => {
       <button class="opening-skip" type="button" @click="skipOpeningAnimation">跳过仪式</button>
     </div>
     <header class="topbar">
-      <button class="brand-button" type="button" @click="activePanel = 'reading'">
+      <button class="brand-button" type="button" @click="showMobileTab('home')">
         <Wand2 :size="22" aria-hidden="true" />
         <span>Soothsay</span>
         <small>v{{ appVersion }}</small>
       </button>
       <nav class="top-actions" aria-label="主导航">
+        <button class="icon-button mobile-top-action" type="button" title="选大师" @click="masterModalOpen = true">
+          <UserRound :size="20" aria-hidden="true" />
+        </button>
         <button class="text-trigger" type="button" title="选大师" @click="masterModalOpen = true">
           <UserRound :size="18" aria-hidden="true" />
           <span>{{ selectedPersona?.name ?? '选大师' }}</span>
@@ -1340,7 +1389,7 @@ onMounted(async () => {
         <button class="icon-button" type="button" title="凭据设置" @click="openSettings">
           <KeyRound :size="20" aria-hidden="true" />
         </button>
-        <button class="icon-button" type="button" title="管理后台" @click="activePanel = 'admin'">
+        <button class="icon-button desktop-admin-action" type="button" title="管理后台" @click="activePanel = 'admin'">
           <ShieldCheck :size="20" aria-hidden="true" />
         </button>
       </nav>
@@ -1666,7 +1715,151 @@ onMounted(async () => {
       </section>
     </div>
 
-    <section v-if="activePanel === 'reading'" class="workspace">
+    <section v-if="activePanel === 'reading' && mobileTab === 'home'" class="mobile-screen mobile-home-view" aria-label="移动端首页">
+      <section class="mobile-hero-card">
+        <div>
+          <span class="mobile-hero-dot" aria-hidden="true"></span>
+          <h1>{{ mobileGreeting }}</h1>
+          <p>{{ mobileDailyMeta }}</p>
+        </div>
+      </section>
+
+      <section class="mobile-card mobile-current-card">
+        <div class="mobile-card-head">
+          <div>
+            <span class="mobile-eyebrow">当前命盘</span>
+            <h2>{{ birthTriggerLabel }}</h2>
+          </div>
+          <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('chart')">
+            查看完整命盘
+          </button>
+        </div>
+        <div v-if="selectedPersona" class="mobile-master-card">
+          <img :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
+          <div>
+            <strong>{{ selectedPersona.name }}</strong>
+            <span>{{ engineNameById(selectedPersona.engineId) }}</span>
+            <p>{{ selectedPersona.opening }}</p>
+          </div>
+        </div>
+        <div v-if="chart" class="mobile-pillar-strip">
+          <span v-for="pillar in pillarRows" :key="pillar.name">
+            <small>{{ pillar.label }}</small>
+            <strong>{{ pillar.ganZhi }}</strong>
+            <em>{{ pillar.ganElement }}{{ pillar.zhiElement }}</em>
+          </span>
+        </div>
+        <div v-else class="mobile-empty-card">
+          <p>还没有选择生辰档案。</p>
+          <button class="secondary-button" type="button" @click="openBirthModal">打开生辰档案</button>
+        </div>
+        <div v-if="chart" class="mobile-highlight-row">
+          <span v-for="item in mobileChartHighlights" :key="item.label">
+            <small>{{ item.label }}</small>
+            <strong>{{ item.value }}</strong>
+          </span>
+        </div>
+      </section>
+
+      <section class="mobile-card mobile-action-card">
+        <div class="mobile-card-head">
+          <div>
+            <span class="mobile-eyebrow">今日解读</span>
+            <h2>向{{ selectedPersona?.name ?? '大师' }}追问</h2>
+          </div>
+          <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('reading')">
+            历史对话
+          </button>
+        </div>
+        <div class="mobile-quick-grid">
+          <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('bazi_full')">
+            <Wand2 :size="17" aria-hidden="true" />
+            八字全解
+          </button>
+          <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('daily')">
+            <CalendarDays :size="17" aria-hidden="true" />
+            每日运势
+          </button>
+          <button class="secondary-button" type="button" :disabled="!chart || streaming || drawingLot" @click="requestDailyLot">
+            <Sparkles :size="17" aria-hidden="true" />
+            今日抽签
+          </button>
+        </div>
+        <div class="mobile-follow-card">
+          <input v-model="followQuestion" type="text" placeholder="向大师追问..." @keyup.enter="requestReading('follow_up', followQuestion)" />
+          <button
+            class="composer-send"
+            type="button"
+            title="发送追问"
+            aria-label="发送追问"
+            :disabled="streaming || !followQuestion.trim()"
+            @click="requestReading('follow_up', followQuestion)"
+          >
+            <Send :size="18" aria-hidden="true" />
+          </button>
+        </div>
+        <p class="note-line">命盘生成后可请求解读；没有 key 也不影响排盘。</p>
+      </section>
+
+      <section class="mobile-card mobile-summary-card">
+        <div class="mobile-card-head">
+          <div>
+            <span class="mobile-eyebrow">最近摘要</span>
+            <h2>最近解读摘要</h2>
+          </div>
+          <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('reading')">
+            查看全部
+          </button>
+        </div>
+        <p v-if="mobileRecentSummary">{{ mobileRecentSummary }}</p>
+        <p v-else class="empty-state">还没有大师回复。完成一次解读后会显示摘要。</p>
+      </section>
+    </section>
+
+    <section v-if="activePanel === 'reading' && mobileTab === 'mine'" class="mobile-screen mobile-mine-view" aria-label="移动端我的">
+      <section class="mobile-card">
+        <div class="mobile-card-head">
+          <div>
+            <span class="mobile-eyebrow">我的</span>
+            <h2>管理入口</h2>
+          </div>
+        </div>
+        <div class="mobile-menu-list">
+          <button class="mobile-menu-item" type="button" @click="masterModalOpen = true">
+            <UserRound :size="18" aria-hidden="true" />
+            <span>选择大师</span>
+            <small>{{ selectedPersona?.name ?? '未选择' }}</small>
+          </button>
+          <button class="mobile-menu-item" type="button" @click="openBirthModal">
+            <CalendarDays :size="18" aria-hidden="true" />
+            <span>生辰档案</span>
+            <small>{{ birthTriggerLabel }}</small>
+          </button>
+          <button class="mobile-menu-item" type="button" @click="profileModalOpen = true">
+            <Save :size="18" aria-hidden="true" />
+            <span>个人档案</span>
+            <small>{{ savedFacts.length }} 条</small>
+          </button>
+          <button class="mobile-menu-item" type="button" @click="openHistoryModal">
+            <MessageCircle :size="18" aria-hidden="true" />
+            <span>解读记录</span>
+            <small>{{ historyMessages.length }} 条</small>
+          </button>
+          <button class="mobile-menu-item" type="button" @click="openSettings">
+            <KeyRound :size="18" aria-hidden="true" />
+            <span>凭据设置</span>
+            <small>{{ hasCredentials ? '已配置' : '未配置' }}</small>
+          </button>
+          <button class="mobile-menu-item" type="button" @click="activePanel = 'admin'">
+            <ShieldCheck :size="18" aria-hidden="true" />
+            <span>管理后台</span>
+            <small>角色与体系</small>
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <section v-if="activePanel === 'reading'" class="workspace" :class="`mobile-tab-${mobileTab}`">
       <section class="reading-stage" aria-live="polite">
         <section class="panel chart-panel">
           <div class="panel-title">
@@ -2017,6 +2210,25 @@ onMounted(async () => {
         </section>
       </div>
     </section>
+
+    <nav class="mobile-bottom-tabs" aria-label="移动端主导航">
+      <button type="button" :class="{ active: mobileActiveTab === 'home' }" @click="showMobileTab('home')">
+        <House :size="20" aria-hidden="true" />
+        <span>首页</span>
+      </button>
+      <button type="button" :class="{ active: mobileActiveTab === 'chart' }" @click="showMobileTab('chart')">
+        <LayoutDashboard :size="20" aria-hidden="true" />
+        <span>命盘</span>
+      </button>
+      <button type="button" :class="{ active: mobileActiveTab === 'reading' }" @click="showMobileTab('reading')">
+        <ScrollText :size="20" aria-hidden="true" />
+        <span>解读</span>
+      </button>
+      <button type="button" :class="{ active: mobileActiveTab === 'mine' }" @click="showMobileTab('mine')">
+        <UserRound :size="20" aria-hidden="true" />
+        <span>我的</span>
+      </button>
+    </nav>
 
     <div v-if="loading" class="loading-mask">加载中</div>
   </main>
