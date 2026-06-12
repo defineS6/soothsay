@@ -2590,13 +2590,18 @@ button:focus-visible,
 @media (max-width: 700px) {
   .app-shell {
     --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
-    --mobile-bottom-clearance: calc(152px + var(--mobile-safe-bottom));
-    --mobile-panel-end-spacer: calc(220px + var(--mobile-safe-bottom));
+    --mobile-topbar-space: 88px;
+    --mobile-bottom-nav-space: calc(96px + var(--mobile-safe-bottom));
+    height: 100svh;
     height: 100dvh;
-    padding: 88px 14px var(--mobile-bottom-clearance);
+    padding: var(--mobile-topbar-space) 14px var(--mobile-bottom-nav-space);
     overflow-x: hidden;
     overflow-y: auto;
-    scroll-padding-bottom: var(--mobile-bottom-clearance);
+    scroll-padding-bottom: var(--mobile-bottom-nav-space);
+  }
+
+  .app-shell.mobile-workspace-shell {
+    overflow: hidden;
   }
 
   .topbar {
@@ -2681,13 +2686,24 @@ button:focus-visible,
   .workspace.mobile-tab-chart,
   .workspace.mobile-tab-reading {
     display: block;
+    height: calc(100svh - var(--mobile-topbar-space) - var(--mobile-bottom-nav-space));
+    height: calc(100dvh - var(--mobile-topbar-space) - var(--mobile-bottom-nav-space));
+    min-height: 0;
     padding-bottom: 0;
+    overflow: hidden;
   }
 
   .reading-stage {
     display: block;
     height: auto;
     overflow: visible;
+  }
+
+  .workspace.mobile-tab-chart .reading-stage,
+  .workspace.mobile-tab-reading .reading-stage {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .workspace.mobile-tab-chart .conversation-panel,
@@ -2819,21 +2835,28 @@ button:focus-visible,
   .chart-panel,
   .conversation-panel {
     gap: 12px;
-    overflow: visible;
     padding: 18px;
   }
 
-  .workspace.mobile-tab-chart .chart-panel::after,
-  .workspace.mobile-tab-reading .conversation-panel::after {
-    content: "";
-    display: block;
-    flex: 0 0 var(--mobile-panel-end-spacer);
-    pointer-events: none;
+  .workspace.mobile-tab-chart .chart-panel,
+  .workspace.mobile-tab-reading .conversation-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .chart-content,
   .answer-box {
-    overflow: visible;
+    min-height: 0;
+  }
+
+  .workspace.mobile-tab-chart .chart-content,
+  .workspace.mobile-tab-reading .answer-box {
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 12px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .fact-row .icon-button,

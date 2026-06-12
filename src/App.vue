@@ -1322,7 +1322,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="app-shell" :style="{ '--scene': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})` }">
+  <main
+    class="app-shell"
+    :class="{ 'mobile-workspace-shell': activePanel === 'reading' && (mobileTab === 'chart' || mobileTab === 'reading') }"
+    :style="{ '--scene': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})` }"
+  >
     <div class="scene-layer"></div>
     <div
       v-if="showOpeningAnimation"
