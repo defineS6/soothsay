@@ -2589,9 +2589,10 @@ button:focus-visible,
 
 @media (max-width: 700px) {
   .app-shell {
-    --mobile-bottom-clearance: calc(128px + env(safe-area-inset-bottom));
+    --mobile-safe-bottom: env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px));
+    --mobile-bottom-clearance: calc(152px + var(--mobile-safe-bottom));
     height: 100dvh;
-    padding: 84px 14px var(--mobile-bottom-clearance);
+    padding: 88px 14px var(--mobile-bottom-clearance);
     overflow-x: hidden;
     overflow-y: auto;
     scroll-padding-bottom: var(--mobile-bottom-clearance);
@@ -2604,7 +2605,7 @@ button:focus-visible,
     align-items: center;
     flex-direction: row;
     gap: 8px;
-    min-height: 60px;
+    min-height: 64px;
     padding: 8px;
     overflow: visible;
   }
@@ -2612,7 +2613,7 @@ button:focus-visible,
   .brand-button {
     flex: 1 1 auto;
     min-width: 0;
-    min-height: 44px;
+    min-height: 48px;
     justify-content: flex-start;
     gap: 6px;
     padding: 0 6px;
@@ -2625,11 +2626,11 @@ button:focus-visible,
 
   .brand-button span {
     overflow: hidden;
-    padding: 2px 0 4px;
+    padding: 3px 0 8px;
     font-family: var(--font-display);
     font-size: clamp(24px, 7.4vw, 32px);
     font-weight: 500;
-    line-height: 1.16;
+    line-height: 1.22;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -2679,7 +2680,7 @@ button:focus-visible,
   .workspace.mobile-tab-chart,
   .workspace.mobile-tab-reading {
     display: block;
-    padding-bottom: 32px;
+    padding-bottom: calc(180px + var(--mobile-safe-bottom));
   }
 
   .reading-stage {
