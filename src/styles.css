@@ -969,7 +969,7 @@ button:disabled {
 .mobile-hero-card {
   position: relative;
   overflow: hidden;
-  padding: 22px;
+  padding: 18px;
 }
 
 .mobile-hero-card::after,
@@ -997,9 +997,9 @@ button:disabled {
 
 .mobile-hero-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 10px;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
   border-radius: 999px;
   background: var(--ink-soft);
   opacity: 0.68;
@@ -1015,14 +1015,15 @@ button:disabled {
 .mobile-hero-card h1 {
   display: inline;
   font-family: var(--font-display);
-  font-size: clamp(24px, 7vw, 34px);
-  line-height: 1.15;
+  font-size: clamp(18px, 5vw, 24px);
+  line-height: 1.32;
 }
 
 .mobile-hero-card p,
 .mobile-card p {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: var(--ink-soft);
+  font-size: 13px;
   line-height: 1.65;
 }
 
@@ -1041,8 +1042,8 @@ button:disabled {
 
 .mobile-card-head h2 {
   margin-top: 3px;
-  font-size: 20px;
-  line-height: 1.2;
+  font-size: 18px;
+  line-height: 1.25;
 }
 
 .mobile-eyebrow {
@@ -2606,8 +2607,11 @@ button:focus-visible,
   }
 
   .brand-button {
+    flex: 1 1 auto;
     min-width: 0;
-    padding: 0 8px;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 0 6px;
   }
 
   .brand-button svg {
@@ -2617,7 +2621,7 @@ button:focus-visible,
   .brand-button span {
     overflow: hidden;
     font-family: var(--font-display);
-    font-size: clamp(30px, 11vw, 44px);
+    font-size: clamp(24px, 7.4vw, 32px);
     font-weight: 500;
     line-height: 1;
     text-overflow: ellipsis;
@@ -2626,8 +2630,8 @@ button:focus-visible,
 
   .brand-button small {
     flex: 0 0 auto;
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 3px 7px;
+    font-size: 11px;
   }
 
   .top-actions {
@@ -2718,25 +2722,55 @@ button:focus-visible,
   }
 
   .mobile-card {
+    padding: 14px;
+  }
+
+  .mobile-hero-card {
     padding: 16px;
   }
 
   .mobile-card-head {
     align-items: flex-start;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .mobile-card-head h2 {
-    font-size: 19px;
+    font-size: 17px;
   }
 
   .mobile-master-card {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
   }
 
   .mobile-master-card img {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .mobile-master-card strong {
+    font-size: 16px;
+  }
+
+  .mobile-master-card p {
+    font-size: 12px;
+  }
+
+  .mobile-pillar-strip span {
+    min-height: 70px;
+    padding: 6px 3px;
+  }
+
+  .mobile-pillar-strip small,
+  .mobile-pillar-strip em,
+  .mobile-highlight-row small {
+    font-size: 11px;
+  }
+
+  .mobile-pillar-strip strong {
+    font-size: clamp(19px, 5.8vw, 24px);
   }
 
   .mobile-pillar-strip {
