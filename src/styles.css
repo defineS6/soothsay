@@ -2591,6 +2591,7 @@ button:focus-visible,
   .app-shell {
     --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
     --mobile-bottom-clearance: calc(152px + var(--mobile-safe-bottom));
+    --mobile-panel-end-spacer: calc(220px + var(--mobile-safe-bottom));
     height: 100dvh;
     padding: 88px 14px var(--mobile-bottom-clearance);
     overflow-x: hidden;
@@ -2680,7 +2681,7 @@ button:focus-visible,
   .workspace.mobile-tab-chart,
   .workspace.mobile-tab-reading {
     display: block;
-    padding-bottom: calc(180px + var(--mobile-safe-bottom));
+    padding-bottom: 0;
   }
 
   .reading-stage {
@@ -2818,7 +2819,16 @@ button:focus-visible,
   .chart-panel,
   .conversation-panel {
     gap: 12px;
+    overflow: visible;
     padding: 18px;
+  }
+
+  .workspace.mobile-tab-chart .chart-panel::after,
+  .workspace.mobile-tab-reading .conversation-panel::after {
+    content: "";
+    display: block;
+    flex: 0 0 var(--mobile-panel-end-spacer);
+    pointer-events: none;
   }
 
   .chart-content,
