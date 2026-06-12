@@ -2589,7 +2589,7 @@ button:focus-visible,
 
 @media (max-width: 700px) {
   .app-shell {
-    --mobile-safe-bottom: env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px));
+    --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
     --mobile-bottom-clearance: calc(152px + var(--mobile-safe-bottom));
     height: 100dvh;
     padding: 88px 14px var(--mobile-bottom-clearance);
