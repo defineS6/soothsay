@@ -8,6 +8,7 @@ import {
   House,
   KeyRound,
   LayoutDashboard,
+  Languages,
   Lock,
   MessageCircle,
   RefreshCw,
@@ -22,6 +23,7 @@ import {
   Wand2
 } from 'lucide-vue-next';
 import { createBaziChart } from '@/bazi/engine';
+import { localeStorageKey, normalizeLocale, translate, type Locale, type TranslationKey } from '@/i18n';
 import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, PillarName } from '@/bazi/types';
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
 import { fetchPersonas } from '@/services/personas';
@@ -84,6 +86,17 @@ const PILLAR_LABELS: Record<PillarName, string> = {
 
 const FIVE_ELEMENTS: FiveElement[] = ['木', '火', '土', '金', '水'];
 const appVersion = __APP_VERSION__;
+const locale = ref<Locale>('zh-CN');
+
+function t(key: TranslationKey, params?: Record<string, string | number>) {
+  return translate(locale.value, key, params);
+}
+
+function toggleLocale() {
+  locale.value = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN';
+  window.localStorage.setItem(localeStorageKey, locale.value);
+  document.documentElement.lang = locale.value;
+}
 
 const personas = ref<PersonaSkin[]>([]);
 const engines = ref<PersonaEngine[]>([]);
@@ -209,7 +222,7 @@ const historyMessages = computed(() => roleHistory.value?.messages ?? []);
 const activeBirthProfile = computed(
   () => birthProfiles.value.find((profile) => profile.id === sharedProfile.value?.activeBirthProfileId) ?? null
 );
-const birthTriggerLabel = computed(() => activeBirthProfile.value?.name ?? (chart.value ? '当前命盘' : '生辰档案'));
+const birthTriggerLabel = computed(() => activeBirthProfile.value?.name ?? t(chart.value ? 'home.currentChart' : 'nav.birthProfile'));
 const adminEditingPersona = computed(() => adminPersonas.value.find((persona) => persona.id === adminForm.id) ?? null);
 const adminEditingBuiltin = computed(() => Boolean(adminEditingPersona.value?.builtin));
 const avatarPreview = computed(() => avatarPreviewUrl.value || adminForm.avatarUrl);
@@ -288,14 +301,14 @@ const currentLuckCycle = computed(() => {
 const mobileActiveTab = computed<MobileTab>(() => (activePanel.value === 'reading' ? mobileTab.value : 'mine'));
 const mobileGreeting = computed(() => {
   const hour = new Date().getHours();
-  if (hour < 11) return '早安，愿你今天顺心如意。';
-  if (hour < 18) return '午安，愿你此刻心定事明。';
-  return '晚安，愿你今晚安然从容。';
+  if (hour < 11) return t('greeting.morning');
+  if (hour < 18) return t('greeting.afternoon');
+  return t('greeting.evening');
 });
 const mobileDailyMeta = computed(() => {
   const daily = chart.value?.daily;
-  if (!daily) return '命盘生成后显示今日干支';
-  return `今日 ${daily.ganZhi} · ${daily.relationToDayMaster}`;
+  if (!daily) return t('daily.pending');
+  return t('daily.today', { ganZhi: daily.ganZhi, relation: daily.relationToDayMaster });
 });
 const mobileRecentSummary = computed(() => {
   const message = [...historyMessages.value].reverse().find((item) => item.role === 'assistant');
@@ -1308,6 +1321,8 @@ async function removePersona(persona: PersonaSkin) {
 }
 
 onMounted(async () => {
+  locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey) ?? navigator.language);
+  document.documentElement.lang = locale.value;
   startOpeningAnimation();
   loading.value = true;
   try {
@@ -1370,30 +1385,34 @@ onMounted(async () => {
         <span>Soothsay</span>
         <small>v{{ appVersion }}</small>
       </button>
-      <nav class="top-actions" aria-label="主导航">
-        <button class="icon-button mobile-top-action" type="button" title="选大师" @click="masterModalOpen = true">
+      <nav class="top-actions" :aria-label="t('nav.main')">
+        <button class="icon-button mobile-top-action" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
           <UserRound :size="20" aria-hidden="true" />
         </button>
-        <button class="text-trigger" type="button" title="选大师" @click="masterModalOpen = true">
+        <button class="text-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
           <UserRound :size="18" aria-hidden="true" />
-          <span>{{ selectedPersona?.name ?? '选大师' }}</span>
+          <span>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</span>
         </button>
-        <button class="text-trigger" type="button" title="设置个人档案" @click="profileModalOpen = true">
+        <button class="text-trigger" type="button" :title="t('nav.profile')" @click="profileModalOpen = true">
           <Save :size="18" aria-hidden="true" />
-          <span>个人档案 {{ savedFacts.length }}</span>
+          <span>{{ t('nav.profile') }} {{ savedFacts.length }}</span>
         </button>
-        <button class="text-trigger" type="button" title="管理解读记录" @click="openHistoryModal">
+        <button class="text-trigger" type="button" :title="t('nav.history')" @click="openHistoryModal">
           <MessageCircle :size="18" aria-hidden="true" />
-          <span>解读记录 {{ historyMessages.length }}</span>
+          <span>{{ t('nav.history') }} {{ historyMessages.length }}</span>
         </button>
-        <button class="birth-trigger" type="button" title="生辰档案" @click="openBirthModal">
+        <button class="birth-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
           <CalendarDays :size="18" aria-hidden="true" />
           <span>{{ birthTriggerLabel }}</span>
         </button>
-        <button class="icon-button" type="button" title="凭据设置" @click="openSettings">
+        <button class="icon-button language-toggle" type="button" :title="t('language.label')" :aria-label="t('language.label')" @click="toggleLocale">
+          <Languages :size="20" aria-hidden="true" />
+          <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
+        </button>
+        <button class="icon-button" type="button" :title="t('nav.credentials')" @click="openSettings">
           <KeyRound :size="20" aria-hidden="true" />
         </button>
-        <button class="icon-button desktop-admin-action" type="button" title="管理后台" @click="activePanel = 'admin'">
+        <button class="icon-button desktop-admin-action" type="button" :title="t('nav.admin')" @click="activePanel = 'admin'">
           <ShieldCheck :size="20" aria-hidden="true" />
         </button>
       </nav>
@@ -1731,11 +1750,11 @@ onMounted(async () => {
       <section class="mobile-card mobile-current-card">
         <div class="mobile-card-head">
           <div>
-            <span class="mobile-eyebrow">当前命盘</span>
+            <span class="mobile-eyebrow">{{ t('home.currentChart') }}</span>
             <h2>{{ birthTriggerLabel }}</h2>
           </div>
           <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('chart')">
-            查看完整命盘
+            {{ t('home.viewFullChart') }}
           </button>
         </div>
         <div v-if="selectedPersona" class="mobile-master-card">
@@ -1754,8 +1773,8 @@ onMounted(async () => {
           </span>
         </div>
         <div v-else class="mobile-empty-card">
-          <p>还没有选择生辰档案。</p>
-          <button class="secondary-button" type="button" @click="openBirthModal">打开生辰档案</button>
+          <p>{{ t('home.noBirthProfile') }}</p>
+          <button class="secondary-button" type="button" @click="openBirthModal">{{ t('home.openBirthProfile') }}</button>
         </div>
         <div v-if="chart" class="mobile-highlight-row">
           <span v-for="item in mobileChartHighlights" :key="item.label">
@@ -1768,55 +1787,55 @@ onMounted(async () => {
       <section class="mobile-card mobile-action-card">
         <div class="mobile-card-head">
           <div>
-            <span class="mobile-eyebrow">今日解读</span>
-            <h2>向{{ selectedPersona?.name ?? '大师' }}追问</h2>
+            <span class="mobile-eyebrow">{{ t('home.todayReading') }}</span>
+            <h2>{{ t('home.askMaster', { master: selectedPersona?.name ?? t('home.masterFallback') }) }}</h2>
           </div>
           <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('reading')">
-            历史对话
+            {{ t('home.history') }}
           </button>
         </div>
         <div class="mobile-quick-grid">
           <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('bazi_full')">
             <Wand2 :size="17" aria-hidden="true" />
-            八字全解
+            {{ t('home.fullReading') }}
           </button>
           <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('daily')">
             <CalendarDays :size="17" aria-hidden="true" />
-            每日运势
+            {{ t('home.dailyFortune') }}
           </button>
           <button class="secondary-button" type="button" :disabled="!chart || streaming || drawingLot" @click="requestDailyLot">
             <Sparkles :size="17" aria-hidden="true" />
-            今日抽签
+            {{ t('home.dailyLot') }}
           </button>
         </div>
         <div class="mobile-follow-card">
-          <input v-model="followQuestion" type="text" placeholder="向大师追问..." @keyup.enter="requestReading('follow_up', followQuestion)" />
+          <input v-model="followQuestion" type="text" :placeholder="t('home.askPlaceholder')" @keyup.enter="requestReading('follow_up', followQuestion)" />
           <button
             class="composer-send"
             type="button"
-            title="发送追问"
-            aria-label="发送追问"
+            :title="t('home.sendFollowUp')"
+            :aria-label="t('home.sendFollowUp')"
             :disabled="streaming || !followQuestion.trim()"
             @click="requestReading('follow_up', followQuestion)"
           >
             <Send :size="18" aria-hidden="true" />
           </button>
         </div>
-        <p class="note-line">命盘生成后可请求解读；没有 key 也不影响排盘。</p>
+        <p class="note-line">{{ t('home.readingHint') }}</p>
       </section>
 
       <section class="mobile-card mobile-summary-card">
         <div class="mobile-card-head">
           <div>
-            <span class="mobile-eyebrow">最近摘要</span>
-            <h2>最近解读摘要</h2>
+            <span class="mobile-eyebrow">{{ t('home.recent') }}</span>
+            <h2>{{ t('home.recentSummary') }}</h2>
           </div>
           <button class="ghost-button mobile-link-button" type="button" @click="showMobileTab('reading')">
-            查看全部
+            {{ t('home.viewAll') }}
           </button>
         </div>
         <p v-if="mobileRecentSummary">{{ mobileRecentSummary }}</p>
-        <p v-else class="empty-state">还没有大师回复。完成一次解读后会显示摘要。</p>
+        <p v-else class="empty-state">{{ t('home.noReply') }}</p>
       </section>
     </section>
 
@@ -1824,40 +1843,40 @@ onMounted(async () => {
       <section class="mobile-card">
         <div class="mobile-card-head">
           <div>
-            <span class="mobile-eyebrow">我的</span>
-            <h2>管理入口</h2>
+            <span class="mobile-eyebrow">{{ t('nav.mine') }}</span>
+            <h2>{{ t('mine.management') }}</h2>
           </div>
         </div>
         <div class="mobile-menu-list">
           <button class="mobile-menu-item" type="button" @click="masterModalOpen = true">
             <UserRound :size="18" aria-hidden="true" />
-            <span>选择大师</span>
-            <small>{{ selectedPersona?.name ?? '未选择' }}</small>
+            <span>{{ t('mine.chooseMaster') }}</span>
+            <small>{{ selectedPersona?.name ?? t('mine.notSelected') }}</small>
           </button>
           <button class="mobile-menu-item" type="button" @click="openBirthModal">
             <CalendarDays :size="18" aria-hidden="true" />
-            <span>生辰档案</span>
+            <span>{{ t('nav.birthProfile') }}</span>
             <small>{{ birthTriggerLabel }}</small>
           </button>
           <button class="mobile-menu-item" type="button" @click="profileModalOpen = true">
             <Save :size="18" aria-hidden="true" />
-            <span>个人档案</span>
-            <small>{{ savedFacts.length }} 条</small>
+            <span>{{ t('nav.profile') }}</span>
+            <small>{{ t('common.items', { count: savedFacts.length }) }}</small>
           </button>
           <button class="mobile-menu-item" type="button" @click="openHistoryModal">
             <MessageCircle :size="18" aria-hidden="true" />
-            <span>解读记录</span>
-            <small>{{ historyMessages.length }} 条</small>
+            <span>{{ t('nav.history') }}</span>
+            <small>{{ t('common.items', { count: historyMessages.length }) }}</small>
           </button>
           <button class="mobile-menu-item" type="button" @click="openSettings">
             <KeyRound :size="18" aria-hidden="true" />
-            <span>凭据设置</span>
-            <small>{{ hasCredentials ? '已配置' : '未配置' }}</small>
+            <span>{{ t('nav.credentials') }}</span>
+            <small>{{ hasCredentials ? t('mine.configured') : t('mine.notConfigured') }}</small>
           </button>
           <button class="mobile-menu-item" type="button" @click="activePanel = 'admin'">
             <ShieldCheck :size="18" aria-hidden="true" />
-            <span>管理后台</span>
-            <small>角色与体系</small>
+            <span>{{ t('nav.admin') }}</span>
+            <small>{{ t('mine.roles') }}</small>
           </button>
         </div>
       </section>
@@ -1868,7 +1887,7 @@ onMounted(async () => {
         <section class="panel chart-panel">
           <div class="panel-title">
             <Wand2 :size="18" aria-hidden="true" />
-            <h2>命盘</h2>
+            <h2>{{ t('nav.chart') }}</h2>
           </div>
           <div v-if="selectedPersona" class="chart-master-strip">
             <img class="chart-master-avatar" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
@@ -1972,11 +1991,11 @@ onMounted(async () => {
             <div class="actions-row">
               <button class="primary-button" type="button" :disabled="streaming" @click="requestReading('bazi_full')">
                 <Wand2 :size="18" aria-hidden="true" />
-                八字全解
+                {{ t('home.fullReading') }}
               </button>
               <button class="secondary-button" type="button" :disabled="streaming" @click="requestReading('daily')">
                 <CalendarDays :size="18" aria-hidden="true" />
-                每日运势
+                {{ t('home.dailyFortune') }}
               </button>
               <button
                 class="secondary-button lot-button"
@@ -1986,20 +2005,20 @@ onMounted(async () => {
                 @click="requestDailyLot"
               >
                 <Sparkles :size="18" aria-hidden="true" />
-                今日抽签
+                {{ t('home.dailyLot') }}
               </button>
             </div>
           </div>
           <div v-else class="empty-state chart-empty">
-            <p>还没有选择生辰档案。</p>
-            <button class="secondary-button" type="button" @click="openBirthModal">打开生辰档案</button>
+            <p>{{ t('home.noBirthProfile') }}</p>
+            <button class="secondary-button" type="button" @click="openBirthModal">{{ t('home.openBirthProfile') }}</button>
           </div>
         </section>
 
         <section class="panel conversation-panel">
           <div class="panel-title">
             <MessageCircle :size="18" aria-hidden="true" />
-            <h2>解读</h2>
+            <h2>{{ t('nav.reading') }}</h2>
           </div>
           <div class="answer-box">
             <div v-if="streaming || readingText" class="markdown-frame">
@@ -2016,8 +2035,8 @@ onMounted(async () => {
             <button
               class="composer-send"
               type="button"
-              title="发送追问"
-              aria-label="发送追问"
+              :title="t('home.sendFollowUp')"
+              :aria-label="t('home.sendFollowUp')"
               :disabled="streaming || !followQuestion.trim()"
               @click="requestReading('follow_up', followQuestion)"
             >
@@ -2215,25 +2234,25 @@ onMounted(async () => {
       </div>
     </section>
 
-    <nav class="mobile-bottom-tabs" aria-label="移动端主导航">
+    <nav class="mobile-bottom-tabs" :aria-label="t('nav.mobile')">
       <button type="button" :class="{ active: mobileActiveTab === 'home' }" @click="showMobileTab('home')">
         <House :size="20" aria-hidden="true" />
-        <span>首页</span>
+        <span>{{ t('nav.home') }}</span>
       </button>
       <button type="button" :class="{ active: mobileActiveTab === 'chart' }" @click="showMobileTab('chart')">
         <LayoutDashboard :size="20" aria-hidden="true" />
-        <span>命盘</span>
+        <span>{{ t('nav.chart') }}</span>
       </button>
       <button type="button" :class="{ active: mobileActiveTab === 'reading' }" @click="showMobileTab('reading')">
         <ScrollText :size="20" aria-hidden="true" />
-        <span>解读</span>
+        <span>{{ t('nav.reading') }}</span>
       </button>
       <button type="button" :class="{ active: mobileActiveTab === 'mine' }" @click="showMobileTab('mine')">
         <UserRound :size="20" aria-hidden="true" />
-        <span>我的</span>
+        <span>{{ t('nav.mine') }}</span>
       </button>
     </nav>
 
-    <div v-if="loading" class="loading-mask">加载中</div>
+    <div v-if="loading" class="loading-mask">{{ t('common.loading') }}</div>
   </main>
 </template>

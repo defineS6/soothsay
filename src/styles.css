@@ -2961,3 +2961,21 @@ button:focus-visible,
     animation-iteration-count: 1 !important;
   }
 }
+
+.language-toggle {
+  width: auto;
+  min-width: 48px;
+  padding: 0 8px;
+}
+
+.language-toggle span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 720px) {
+  .top-actions .icon-button.language-toggle {
+    width: 50px;
+  }
+}
