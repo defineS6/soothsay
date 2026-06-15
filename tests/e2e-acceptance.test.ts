@@ -240,6 +240,7 @@ describe('OpenSpec 端到端验收', () => {
         avatarUrl: uploadData.url,
         backgroundUrl: uploadData.url,
         mobileBackgroundUrl: `${uploadData.url}?mobile=1`,
+        backgroundIntensity: 64,
         opening: '用现实派方式做验收。',
         customPrompt: '这是验收角色的自定义提示词。',
         tone: { directness: 80, detail: 45 },
@@ -250,6 +251,7 @@ describe('OpenSpec 端到端验收', () => {
     const created = await create.json();
     expect(created.persona.backgroundUrl).toBe(uploadData.url);
     expect(created.persona.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=1`);
+    expect(created.persona.backgroundIntensity).toBe(64);
 
     const update = await app.request(`/api/admin/personas/${created.persona.id}`, {
       method: 'PUT',
@@ -260,6 +262,7 @@ describe('OpenSpec 端到端验收', () => {
         avatarUrl: uploadData.url,
         backgroundUrl: `${uploadData.url}?desktop=2`,
         mobileBackgroundUrl: `${uploadData.url}?mobile=2`,
+        backgroundIntensity: 35,
         opening: '用现实派方式做验收。',
         customPrompt: '这是验收角色的自定义提示词。',
         tone: { directness: 80, detail: 45 },
@@ -270,6 +273,7 @@ describe('OpenSpec 端到端验收', () => {
     const updated = await update.json();
     expect(updated.persona.backgroundUrl).toBe(`${uploadData.url}?desktop=2`);
     expect(updated.persona.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=2`);
+    expect(updated.persona.backgroundIntensity).toBe(35);
 
     const list = await app.request('/api/personas');
     const listData = await list.json();
@@ -277,6 +281,7 @@ describe('OpenSpec 端到端验收', () => {
     expect(createdPersona?.customPrompt).toBe('这是验收角色的自定义提示词。');
     expect(createdPersona?.backgroundUrl).toBe(`${uploadData.url}?desktop=2`);
     expect(createdPersona?.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=2`);
+    expect(createdPersona?.backgroundIntensity).toBe(35);
     expect(listData.engines.some((item: PersonaEngine) => item.id === 'engine-acceptance' && item.name === '验收体系')).toBe(true);
 
     const deleteBuiltin = await app.request('/api/admin/personas/builtin-daoist', {
@@ -318,10 +323,27 @@ describe('OpenSpec 端到端验收', () => {
     expect(create.status).toBe(201);
     const created = await create.json();
     expect(created.persona.mobileBackgroundUrl).toBe('/defaults/custom-bg.svg');
+    expect(created.persona.backgroundIntensity).toBe(100);
 
     const list = await app.request('/api/personas');
     const listData = await list.json();
     const createdPersona = listData.personas.find((item: PersonaSkin) => item.id === created.persona.id);
     expect(createdPersona?.mobileBackgroundUrl).toBe(createdPersona?.backgroundUrl);
+    expect(createdPersona?.backgroundIntensity).toBe(100);
+  });
+
+  it('Vercel 模式缺少 PostgreSQL 时返回明确错误', async () => {
+    await createTestApp();
+    const { createApp } = await import('../server/src/app');
+    const app = createApp({
+      ensureStore: true,
+      requirePostgres: true,
+      serveStaticAssets: false,
+      mountApiUploads: true
+    });
+
+    const response = await app.request('/api/personas');
+    expect(response.status).toBe(500);
+    expect(await response.text()).toContain('Vercel 部署需要配置');
   });
 });

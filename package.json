@@ -2,6 +2,7 @@
   "name": "soothsay",
   "version": "0.2.1",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.3.0",
   "scripts": {

@@ -77,6 +77,7 @@ button:disabled {
 .app-shell {
   --scene-desktop: url("/defaults/custom-bg.svg");
   --scene-mobile: var(--scene-desktop);
+  --scene-opacity: 1;
   position: relative;
   display: flex;
   height: 100vh;
@@ -91,21 +92,28 @@ button:disabled {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image:
-    linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9)),
-    var(--scene-desktop);
+  overflow: hidden;
+}
+
+.scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--scene-desktop);
   background-size: cover;
   background-position: center;
   /* 背景图多为冷色：降饱和并微暖化，使其退为几乎无色的暖灰纹理，让内容主导 */
   filter: saturate(0.2) sepia(0.12);
+  opacity: var(--scene-opacity);
 }
 
 .scene-layer::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, rgba(250, 249, 245, 0.4), rgba(232, 230, 220, 0.82));
+  background:
+    linear-gradient(180deg, rgba(250, 249, 245, 0.4), rgba(232, 230, 220, 0.82)),
+    linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9));
 }
 
 .topbar {
@@ -1508,6 +1516,12 @@ textarea:focus {
   box-shadow: var(--focus-ring);
 }
 
+.range-field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
 button:focus-visible,
 .master-card:focus-visible {
   outline: 2px solid rgba(20, 20, 19, 0.5);
@@ -2587,10 +2601,8 @@ button:focus-visible,
     overflow: hidden;
   }
 
-  .scene-layer {
-    background-image:
-      linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9)),
-      var(--scene-mobile);
+  .scene-layer::before {
+    background-image: var(--scene-mobile);
   }
 
   .topbar {

@@ -14,6 +14,7 @@ export interface PersonaSkin {
   avatarUrl: string;
   backgroundUrl: string;
   mobileBackgroundUrl: string;
+  backgroundIntensity: number;
   tone: ToneSettings;
   opening: string;
   customPrompt: string;
@@ -92,6 +93,7 @@ export const DEFAULT_PERSONAS: PersonaSkin[] = [
     avatarUrl: '/defaults/daoist-avatar.svg',
     backgroundUrl: '/defaults/daoist-bg.svg',
     mobileBackgroundUrl: '/defaults/daoist-bg.svg',
+    backgroundIntensity: 100,
     tone: { directness: 42, detail: 72 },
     opening: '贫道先看你命局的气从何处来，再看今日该顺哪一阵风。',
     customPrompt: '',
@@ -107,6 +109,7 @@ export const DEFAULT_PERSONAS: PersonaSkin[] = [
     avatarUrl: '/defaults/buddhist-avatar.svg',
     backgroundUrl: '/defaults/buddhist-bg.svg',
     mobileBackgroundUrl: '/defaults/buddhist-bg.svg',
+    backgroundIntensity: 100,
     tone: { directness: 25, detail: 66 },
     opening: '命盘如镜，照见因缘；我们慢慢看，哪些是业风，哪些可由心转。',
     customPrompt: '',
@@ -122,6 +125,7 @@ export const DEFAULT_PERSONAS: PersonaSkin[] = [
     avatarUrl: '/defaults/realist-avatar.svg',
     backgroundUrl: '/defaults/realist-bg.svg',
     mobileBackgroundUrl: '/defaults/realist-bg.svg',
+    backgroundIntensity: 100,
     tone: { directness: 58, detail: 70 },
     opening: '我会先看你的模式和情绪卡点，再把命盘里的提醒翻译成能落地的心理练习。',
     customPrompt: '',

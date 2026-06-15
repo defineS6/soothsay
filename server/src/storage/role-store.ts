@@ -78,6 +78,12 @@ function normalizePromptRules(value: unknown, existing: string[] = []) {
   return rules;
 }
 
+function normalizeBackgroundIntensity(value: unknown, fallback = 100) {
+  const numeric = Number(value ?? fallback);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+}
+
 function sanitizeCustomEnginePayload(payload: any, existing?: PersonaEngine): PersonaEngine {
   const now = new Date().toISOString();
   const id = String(payload?.id ?? existing?.id ?? createEngineId()).trim();
@@ -140,6 +146,7 @@ function sanitizeRolePayload(payload: any, existing: PersonaSkin | undefined, en
     avatarUrl: String(payload?.avatarUrl ?? existing?.avatarUrl ?? '/defaults/custom-avatar.svg').trim(),
     backgroundUrl,
     mobileBackgroundUrl: String(payload?.mobileBackgroundUrl ?? existing?.mobileBackgroundUrl ?? backgroundUrl).trim(),
+    backgroundIntensity: normalizeBackgroundIntensity(payload?.backgroundIntensity, existing?.backgroundIntensity ?? 100),
     tone: normalizeTone(payload?.tone ?? existing?.tone),
     opening,
     customPrompt,
@@ -158,6 +165,7 @@ function sanitizeBuiltinMediaPayload(payload: any, base: PersonaSkin, existing?:
     avatarUrl: String(payload?.avatarUrl ?? existing?.avatarUrl ?? base.avatarUrl).trim(),
     backgroundUrl,
     mobileBackgroundUrl: String(payload?.mobileBackgroundUrl ?? existing?.mobileBackgroundUrl ?? base.mobileBackgroundUrl ?? backgroundUrl).trim(),
+    backgroundIntensity: normalizeBackgroundIntensity(payload?.backgroundIntensity, existing?.backgroundIntensity ?? base.backgroundIntensity ?? 100),
     customPrompt: base.customPrompt,
     builtin: true,
     createdAt: existing?.createdAt ?? base.createdAt,
@@ -172,6 +180,7 @@ function mergeBuiltinPersona(base: PersonaSkin, override?: PersonaSkin): Persona
     avatarUrl: override.avatarUrl || base.avatarUrl,
     backgroundUrl: override.backgroundUrl || base.backgroundUrl,
     mobileBackgroundUrl: override.mobileBackgroundUrl || override.backgroundUrl || base.mobileBackgroundUrl || base.backgroundUrl,
+    backgroundIntensity: normalizeBackgroundIntensity(override.backgroundIntensity, base.backgroundIntensity ?? 100),
     updatedAt: override.updatedAt ?? base.updatedAt
   };
 }
@@ -182,6 +191,7 @@ function normalizeStoredPersona(role: PersonaSkin): PersonaSkin {
     ...role,
     backgroundUrl,
     mobileBackgroundUrl: role.mobileBackgroundUrl || backgroundUrl,
+    backgroundIntensity: normalizeBackgroundIntensity(role.backgroundIntensity, 100),
     customPrompt: role.customPrompt ?? ''
   };
 }

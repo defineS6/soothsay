@@ -184,6 +184,7 @@ const adminForm = reactive({
   avatarUrl: '/defaults/custom-avatar.svg',
   backgroundUrl: '/defaults/custom-bg.svg',
   mobileBackgroundUrl: '/defaults/custom-bg.svg',
+  backgroundIntensity: 100,
   tone: {
     directness: 50,
     detail: 60
@@ -220,6 +221,7 @@ const cropSession = reactive({
 });
 
 const selectedPersona = computed(() => personas.value.find((persona) => persona.id === selectedPersonaId.value) ?? personas.value[0]);
+const sceneOpacity = computed(() => (clampPercent(selectedPersona.value?.backgroundIntensity, 100) / 100).toFixed(2));
 const directPillars = computed(() => birthForm.directPillars!);
 const savedFacts = computed(() => sharedProfile.value?.facts ?? []);
 const historyMessages = computed(() => roleHistory.value?.messages ?? []);
@@ -449,10 +451,14 @@ function readGeneratedText(value: unknown, fallback = '') {
   return String(value ?? fallback).trim();
 }
 
-function clampGeneratedNumber(value: unknown, fallback: number) {
+function clampPercent(value: unknown, fallback: number) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   return Math.min(100, Math.max(0, Math.round(numeric)));
+}
+
+function clampGeneratedNumber(value: unknown, fallback: number) {
+  return clampPercent(value, fallback);
 }
 
 function normalizeGeneratedCategories(value: unknown): FortuneCategory[] {
@@ -1115,6 +1121,7 @@ function resetAdminForm() {
     avatarUrl: '/defaults/custom-avatar.svg',
     backgroundUrl: '/defaults/custom-bg.svg',
     mobileBackgroundUrl: '/defaults/custom-bg.svg',
+    backgroundIntensity: 100,
     tone: { directness: 50, detail: 60 },
     categories: ['bazi', 'daily'],
     avatarFile: null,
@@ -1135,6 +1142,7 @@ function editPersona(persona: PersonaSkin) {
     avatarUrl: persona.avatarUrl,
     backgroundUrl: persona.backgroundUrl,
     mobileBackgroundUrl: persona.mobileBackgroundUrl || persona.backgroundUrl,
+    backgroundIntensity: clampPercent(persona.backgroundIntensity, 100),
     tone: { ...persona.tone },
     categories: [...persona.categories],
     avatarFile: null,
@@ -1337,6 +1345,7 @@ async function generatePersonaDraft() {
       avatarUrl: '/defaults/custom-avatar.svg',
       backgroundUrl: '/defaults/custom-bg.svg',
       mobileBackgroundUrl: '/defaults/custom-bg.svg',
+      backgroundIntensity: 100,
       tone: { ...draft.persona.tone },
       categories: [...draft.persona.categories],
       avatarFile: null,
@@ -1367,6 +1376,7 @@ async function savePersona() {
       avatarUrl,
       backgroundUrl,
       mobileBackgroundUrl,
+      backgroundIntensity: clampPercent(adminForm.backgroundIntensity, 100),
       tone: { ...adminForm.tone },
       categories: [...adminForm.categories],
       ...(engine ? { engine } : {})
@@ -1420,7 +1430,8 @@ onMounted(async () => {
     :class="{ 'mobile-workspace-shell': activePanel === 'reading' && (mobileTab === 'chart' || mobileTab === 'reading') }"
     :style="{
       '--scene-desktop': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})`,
-      '--scene-mobile': `url(${selectedPersona?.mobileBackgroundUrl || selectedPersona?.backgroundUrl || '/defaults/custom-bg.svg'})`
+      '--scene-mobile': `url(${selectedPersona?.mobileBackgroundUrl || selectedPersona?.backgroundUrl || '/defaults/custom-bg.svg'})`,
+      '--scene-opacity': sceneOpacity
     }"
   >
     <div class="scene-layer"></div>
@@ -2271,6 +2282,11 @@ onMounted(async () => {
           <label>
             详尽程度
             <input v-model.number="adminForm.tone.detail" type="range" min="0" max="100" :disabled="adminEditingBuiltin" />
+          </label>
+          <label class="range-field">
+            <span>网页背景强度</span>
+            <input v-model.number="adminForm.backgroundIntensity" type="range" min="0" max="100" />
+            <small>{{ clampPercent(adminForm.backgroundIntensity, 100) }}%</small>
           </label>
           <div class="category-row">
             <label class="check-row"><input v-model="adminForm.categories" type="checkbox" value="bazi" :disabled="adminEditingBuiltin" />八字</label>

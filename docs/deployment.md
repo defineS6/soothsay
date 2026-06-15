@@ -54,6 +54,23 @@ docker run -d \
 
 Render 部署时可以使用平台提供的 `DATABASE_URL`，或者手动设置 `SOOTHSAY_PG_DSN`。如果使用 Render PostgreSQL 的外部连接串，通常需要 `sslmode=require` 或 `PGSSLMODE=require`。
 
+## Vercel 部署
+
+仓库已包含 `vercel.json` 和 `api/[...route].ts`。Vercel 会把前端构建到 `dist`，并把 `/api/*` 交给 Hono Serverless Function；`/uploads/*` 会重写到 `/api/uploads/*`，从 PostgreSQL 的 `soothsay_uploads` 表读取。
+
+Vercel 没有持久化本地文件目录，因此必须配置 PostgreSQL：
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `DATABASE_URL` 或 `SOOTHSAY_PG_DSN`
+
+建议额外配置：
+
+- `PGSSLMODE=require`：多数云数据库需要 SSL。
+- `PG_POOL_MAX=1`：降低 Serverless 并发下的连接数压力。
+
+如果没有配置 PostgreSQL，Vercel API 会返回明确错误，不会尝试写入临时或只读文件目录。
+
 ## 隐私边界
 
 用户的 `base_url`、`key`、命盘与对话存放在浏览器本地。服务端只保存部署者配置：自定义角色、自定义体系与上传图片。代理不记录 Authorization、请求正文或响应正文。
