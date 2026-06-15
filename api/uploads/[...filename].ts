@@ -54,8 +54,8 @@ function sendText(res: any, status: number, text: string) {
 }
 
 function readUploadFilename(req: any) {
-  const queryFilename = req.query?.filename;
-  const rawFromQuery = Array.isArray(queryFilename) ? queryFilename[0] : queryFilename;
+  const queryFilename = req.query?.filename ?? req.query?.path;
+  const rawFromQuery = Array.isArray(queryFilename) ? queryFilename.at(-1) : queryFilename;
   if (rawFromQuery) {
     return decodeURIComponent(String(rawFromQuery).split('/').pop() ?? '');
   }
