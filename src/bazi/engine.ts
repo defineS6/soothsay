@@ -23,6 +23,8 @@ import type {
   CivilDateTime,
   DailyFortuneBasis,
   FiveElement,
+  LuckTimeBasis,
+  LuckCycle,
   LiuNian,
   MinorLuck,
   Pillar,
@@ -198,13 +200,16 @@ function applyShenSha(pillars: Record<PillarName, Pillar>) {
   }
 }
 
-function buildUnavailableLuck(reason = '需出生时间计算'): BaziChart['luck'] {
+function buildUnavailableLuck(reason = '需出生时间计算', timeBasis: LuckTimeBasis = 'clock'): BaziChart['luck'] {
   return {
     startAgeText: reason,
     startYear: 0,
     startMonth: 0,
     startDay: 0,
+    startHour: 0,
     startSolarDate: '',
+    startSolarDateTime: '',
+    timeBasis,
     direction: 'forward',
     cycles: [],
     minorLuck: [],
@@ -230,32 +235,64 @@ function mapMinorLuck(items: any[] | null): MinorLuck[] {
   }));
 }
 
-function buildLuck(eightChar: any, input: BirthDateTimeInput): BaziChart['luck'] {
+function formatSolarYmdHm(solar: any) {
+  const dateTime = callString(solar, 'toYmdHms');
+  if (dateTime) return dateTime.slice(0, 16);
+  return callString(solar, 'toYmd') ?? '';
+}
+
+function getCycleStartSolarDateTime(startSolar: any, cycleIndex: number) {
+  if (!startSolar || cycleIndex < 1) return '';
+  const cycleStartSolar = callFunction<any>(startSolar, 'nextYear', (cycleIndex - 1) * 10) ?? startSolar;
+  return formatSolarYmdHm(cycleStartSolar);
+}
+
+function buildLuck(eightChar: any, input: BirthDateTimeInput, timeBasis: LuckTimeBasis): BaziChart['luck'] {
   const gender = input.gender === 'male' ? 1 : 0;
   const yun = callFunction<any>(eightChar, 'getYun', gender, 2);
-  if (!yun) return buildUnavailableLuck('当前历法库无法计算起运、大运、流年与小运');
+  if (!yun) return buildUnavailableLuck('当前历法库无法计算起运、大运、流年与小运', timeBasis);
 
   const rawCycles = callFunction<any[]>(yun, 'getDaYun', 9) ?? [];
   const minorSource = rawCycles.find((cycle) => Number(callFunction(cycle, 'getIndex') ?? -1) === 0);
   const startSolar = callFunction<any>(yun, 'getStartSolar');
   const cycles = rawCycles
-    .map((cycle) => ({
-      index: Number(callFunction(cycle, 'getIndex') ?? 0),
-      ganZhi: callString(cycle, 'getGanZhi') ?? '',
-      startYear: Number(callFunction(cycle, 'getStartYear') ?? 0),
-      endYear: Number(callFunction(cycle, 'getEndYear') ?? 0),
-      startAge: Number(callFunction(cycle, 'getStartAge') ?? 0),
-      endAge: Number(callFunction(cycle, 'getEndAge') ?? 0),
-      liuNian: mapLiuNian(callFunction<any[]>(cycle, 'getLiuNian'))
-    }))
+    .map((cycle) => {
+      const index = Number(callFunction(cycle, 'getIndex') ?? 0);
+      const startYear = Number(callFunction(cycle, 'getStartYear') ?? 0);
+      const endYear = Number(callFunction(cycle, 'getEndYear') ?? 0);
+      const startAge = Number(callFunction(cycle, 'getStartAge') ?? 0);
+      const endAge = Number(callFunction(cycle, 'getEndAge') ?? 0);
+      return {
+        index,
+        ganZhi: callString(cycle, 'getGanZhi') ?? '',
+        startYear,
+        endYear,
+        startAge,
+        endAge,
+        startSolarDateTime: getCycleStartSolarDateTime(startSolar, index),
+        displayStartYear: startYear ? startYear - 1 : 0,
+        displayEndYear: endYear ? endYear - 1 : 0,
+        displayStartAge: startAge ? Math.max(0, startAge - 1) : 0,
+        displayEndAge: endAge ? Math.max(0, endAge - 1) : 0,
+        liuNian: mapLiuNian(callFunction<any[]>(cycle, 'getLiuNian'))
+      };
+    })
     .filter((cycle) => cycle.index > 0);
 
+  const startYear = Number(callFunction(yun, 'getStartYear') ?? 0);
+  const startMonth = Number(callFunction(yun, 'getStartMonth') ?? 0);
+  const startDay = Number(callFunction(yun, 'getStartDay') ?? 0);
+  const startHour = Number(callFunction(yun, 'getStartHour') ?? 0);
+
   return {
-    startAgeText: `${callFunction(yun, 'getStartYear') ?? 0}岁${callFunction(yun, 'getStartMonth') ?? 0}个月${callFunction(yun, 'getStartDay') ?? 0}天`,
-    startYear: Number(callFunction(yun, 'getStartYear') ?? 0),
-    startMonth: Number(callFunction(yun, 'getStartMonth') ?? 0),
-    startDay: Number(callFunction(yun, 'getStartDay') ?? 0),
+    startAgeText: `${startYear}岁${startMonth}个月${startDay}天${startHour}时`,
+    startYear,
+    startMonth,
+    startDay,
+    startHour,
     startSolarDate: startSolar && typeof startSolar.toYmd === 'function' ? String(startSolar.toYmd()) : '',
+    startSolarDateTime: formatSolarYmdHm(startSolar),
+    timeBasis,
     direction: callFunction<boolean>(yun, 'isForward') ? 'forward' : 'backward',
     cycles,
     minorLuck: mapMinorLuck(callFunction<any[]>(minorSource, 'getXiaoYun'))
@@ -381,9 +418,32 @@ function buildDailyBasis(dayMasterElement: FiveElement, pillars: Record<PillarNa
   };
 }
 
-function buildPromptLuck(luck: BaziChart['luck'], now: Date) {
+function parseLuckDateTime(value: string | undefined, fallbackYear: number) {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?/);
+  if (!match) return new Date(fallbackYear, 0, 1);
+  return new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    Number(match[4] ?? 0),
+    Number(match[5] ?? 0)
+  );
+}
+
+function findCurrentLuckCycle(cycles: LuckCycle[], now: Date) {
+  const ordered = [...cycles].sort((a, b) => a.index - b.index);
+  const precise = ordered.find((cycle, index) => {
+    const start = parseLuckDateTime(cycle.startSolarDateTime, cycle.startYear);
+    const next = ordered[index + 1] ? parseLuckDateTime(ordered[index + 1].startSolarDateTime, ordered[index + 1].startYear) : null;
+    return now >= start && (!next || now < next);
+  });
+  if (precise) return precise;
   const year = now.getFullYear();
-  const current = luck.cycles.find((cycle) => year >= cycle.startYear && year <= cycle.endYear);
+  return ordered.find((cycle) => year >= cycle.startYear && year <= cycle.endYear);
+}
+
+function buildPromptLuck(luck: BaziChart['luck'], now: Date) {
+  const current = findCurrentLuckCycle(luck.cycles, now);
   return {
     ...luck,
     cycles: luck.cycles.map((cycle) => {
@@ -424,9 +484,13 @@ function buildPromptFacts(chart: BaziChart, now: Date, solarDateTime: string | n
 
 export function createBaziChart(input: BirthDateTimeInput, now = new Date()): BaziChart {
   assertBirthInput(input);
+  const normalizedInput: BirthDateTimeInput = {
+    ...input,
+    luckTimeBasis: input.luckTimeBasis ?? 'clock'
+  };
 
-  if (input.calendarType === 'bazi') {
-    const directPillars = input.directPillars;
+  if (normalizedInput.calendarType === 'bazi') {
+    const directPillars = normalizedInput.directPillars;
     if (!directPillars) {
       throw new Error('请填写四柱八字');
     }
@@ -445,7 +509,7 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
       '胎元、胎息、命宫、身宫、节气、流年与小运需出生时间计算。'
     ];
     const chart: BaziChart = {
-      input,
+      input: normalizedInput,
       source: 'manual-pillars',
       solarDateTime: null,
       lunarDateText: '手动输入四柱',
@@ -462,7 +526,7 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
       pillars,
       dayMaster,
       fiveElementStats: createFiveElementStats(pillarArray),
-      luck: buildUnavailableLuck(),
+      luck: buildUnavailableLuck('需出生时间计算', normalizedInput.luckTimeBasis ?? 'clock'),
       ...manualFactors,
       strength: createBaziStrength(pillars, {
         source: 'manual-pillars',
@@ -479,22 +543,29 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
     return chart;
   }
 
-  const civilTime = toCivilFromInput(input);
-  const correction = input.location
-    ? getTrueSolarCorrectionMinutes(civilTime, input.location.longitude)
+  const civilTime = toCivilFromInput(normalizedInput);
+  const correction = normalizedInput.location
+    ? getTrueSolarCorrectionMinutes(civilTime, normalizedInput.location.longitude)
     : {
         equationOfTimeMinutes: 0,
         longitudeCorrectionMinutes: 0,
         totalCorrectionMinutes: 0
       };
-  const correctedTime = input.location
+  const correctedTime = normalizedInput.location
     ? normalizeCivilDateTime(civilTime, correction.totalCorrectionMinutes)
     : civilTime;
 
   const solar = createSolar(correctedTime);
   const lunar = solar.getLunar();
   const eightChar = lunar.getEightChar();
-  applyZiHourPolicy(eightChar, correctedTime, input);
+  applyZiHourPolicy(eightChar, correctedTime, normalizedInput);
+  const luckTimeBasis = normalizedInput.luckTimeBasis ?? 'clock';
+  const luckTime = luckTimeBasis === 'trueSolar' ? correctedTime : civilTime;
+  const luckSolar = luckTimeBasis === 'trueSolar' ? solar : createSolar(luckTime);
+  const luckEightChar = luckTimeBasis === 'trueSolar' ? eightChar : luckSolar.getLunar().getEightChar();
+  if (luckTimeBasis === 'clock') {
+    applyZiHourPolicy(luckEightChar, luckTime, normalizedInput);
+  }
 
   const pillarArray = PILLAR_NAMES.map((name) => buildPillar(name, eightChar));
   const pillars = Object.fromEntries(pillarArray.map((pillar) => [pillar.name, pillar])) as Record<PillarName, Pillar>;
@@ -504,33 +575,34 @@ export function createBaziChart(input: BirthDateTimeInput, now = new Date()): Ba
     element: STEM_ELEMENTS[pillars.day.gan]
   };
   const factors = buildDatetimeFactors(eightChar, lunar, correctedTime);
-  const notes = input.location
-    ? [`已按${input.location.name ?? '出生地'}经度 ${input.location.longitude}° 校正真太阳时。`]
+  const notes = normalizedInput.location
+    ? [`已按${normalizedInput.location.name ?? '出生地'}经度 ${normalizedInput.location.longitude}° 校正真太阳时。`]
     : ['未提供出生地经度，已使用钟表时间排盘；时柱可能因真太阳时未校正存在偏差。'];
-  if ((input.ziHourPolicy ?? 'lateZiNextDay') === 'lateZiNextDay' && correctedTime.hour === 23) {
+  notes.push(luckTimeBasis === 'clock' ? '起运按原始钟表时间计算。' : '起运按真太阳时校正后的时间计算。');
+  if ((normalizedInput.ziHourPolicy ?? 'lateZiNextDay') === 'lateZiNextDay' && correctedTime.hour === 23) {
     notes.push('出生时间落在晚子时，日柱按子初换日规则处理。');
   }
 
   const chart: BaziChart = {
-    input,
+    input: normalizedInput,
     source: 'datetime',
     solarDateTime: correctedTime,
     lunarDateText: String(lunar.toString()),
     trueSolarTime: {
-      enabled: Boolean(input.location),
-      degraded: !input.location,
-      longitude: input.location?.longitude,
+      enabled: Boolean(normalizedInput.location),
+      degraded: !normalizedInput.location,
+      longitude: normalizedInput.location?.longitude,
       equationOfTimeMinutes: Number(correction.equationOfTimeMinutes.toFixed(2)),
       longitudeCorrectionMinutes: Number(correction.longitudeCorrectionMinutes.toFixed(2)),
       totalCorrectionMinutes: Number(correction.totalCorrectionMinutes.toFixed(2)),
       civilTime,
       correctedTime,
-      warning: input.location ? undefined : '未提供出生地，经度与均时差校正未启用'
+      warning: normalizedInput.location ? undefined : '未提供出生地，经度与均时差校正未启用'
     },
     pillars,
     dayMaster,
     fiveElementStats: createFiveElementStats(pillarArray),
-    luck: buildLuck(eightChar, input),
+    luck: buildLuck(luckEightChar, normalizedInput, luckTimeBasis),
     ...factors,
     strength: createBaziStrength(pillars, {
       source: 'datetime',

@@ -192,4 +192,73 @@ describe('bazi-engine', () => {
     expect(chart.luck.cycles).toEqual([]);
     expect(chart.luck.minorLuck).toEqual([]);
   });
+
+  it('默认按钟表时间计算起运并对齐问真式大运标签', () => {
+    const chart = createBaziChart({
+      calendarType: 'lunar',
+      year: 1997,
+      month: 3,
+      day: 22,
+      hour: 5,
+      minute: 31,
+      gender: 'male',
+      location: {
+        name: '出生地',
+        longitude: 115.94
+      }
+    });
+
+    expect(chart.input.luckTimeBasis).toBe('clock');
+    expect(chart.pillars).toMatchObject({
+      year: { ganZhi: '丁丑' },
+      month: { ganZhi: '甲辰' },
+      day: { ganZhi: '庚子' },
+      hour: { ganZhi: '己卯' }
+    });
+    expect(chart.luck).toMatchObject({
+      startAgeText: '7岁8个月17天22时',
+      startYear: 7,
+      startMonth: 8,
+      startDay: 17,
+      startHour: 22,
+      startSolarDate: '2005-01-15',
+      startSolarDateTime: '2005-01-15 03:31',
+      timeBasis: 'clock',
+      direction: 'backward'
+    });
+    expect(chart.luck.cycles[0]).toMatchObject({
+      ganZhi: '癸卯',
+      startYear: 2005,
+      endYear: 2014,
+      startAge: 9,
+      endAge: 18,
+      startSolarDateTime: '2005-01-15 03:31',
+      displayStartYear: 2004,
+      displayEndYear: 2013,
+      displayStartAge: 8,
+      displayEndAge: 17
+    });
+  });
+
+  it('起运基准选择真太阳时时会使用校正后的时间', () => {
+    const chart = createBaziChart({
+      calendarType: 'lunar',
+      year: 1997,
+      month: 3,
+      day: 22,
+      hour: 5,
+      minute: 31,
+      gender: 'male',
+      luckTimeBasis: 'trueSolar',
+      location: {
+        name: '出生地',
+        longitude: 115.94
+      }
+    });
+
+    expect(chart.luck.timeBasis).toBe('trueSolar');
+    expect(chart.luck.startAgeText).toBe('7岁8个月16天18时');
+    expect(chart.luck.startSolarDateTime).toBe('2005-01-13 23:17');
+    expect(chart.luck.startAgeText).not.toBe('7岁8个月17天22时');
+  });
 });

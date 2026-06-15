@@ -1,6 +1,7 @@
 export type CalendarType = 'solar' | 'lunar' | 'bazi';
 export type Gender = 'male' | 'female';
 export type ZiHourPolicy = 'lateZiNextDay' | 'lateZiSameDay';
+export type LuckTimeBasis = 'clock' | 'trueSolar';
 export type PillarName = 'year' | 'month' | 'day' | 'hour';
 export type FiveElement = '木' | '火' | '土' | '金' | '水';
 export type HiddenStemLevel = '本气' | '中气' | '余气';
@@ -21,6 +22,7 @@ export interface BirthDateTimeInput {
     longitude: number;
   };
   ziHourPolicy?: ZiHourPolicy;
+  luckTimeBasis?: LuckTimeBasis;
   directPillars?: Record<PillarName, string>;
 }
 
@@ -78,6 +80,11 @@ export interface LuckCycle {
   endYear: number;
   startAge: number;
   endAge: number;
+  startSolarDateTime: string;
+  displayStartYear: number;
+  displayEndYear: number;
+  displayStartAge: number;
+  displayEndAge: number;
   liuNian?: LiuNian[];
 }
 
@@ -201,7 +208,10 @@ export interface BaziChart {
     startYear: number;
     startMonth: number;
     startDay: number;
+    startHour: number;
     startSolarDate: string;
+    startSolarDateTime: string;
+    timeBasis: LuckTimeBasis;
     direction: 'forward' | 'backward';
     cycles: LuckCycle[];
     minorLuck?: MinorLuck[];

@@ -24,7 +24,7 @@ import {
 } from 'lucide-vue-next';
 import { createBaziChart } from '@/bazi/engine';
 import { localeStorageKey, normalizeLocale, translate, type Locale, type TranslationKey } from '@/i18n';
-import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, PillarName } from '@/bazi/types';
+import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, LuckCycle, PillarName } from '@/bazi/types';
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
 import { fetchPersonas } from '@/services/personas';
 import { streamFortuneReading, testCredentials } from '@/services/proxy';
@@ -135,6 +135,7 @@ function createDefaultBirthInput(): BirthDateTimeInput {
     isLeapMonth: false,
     location: undefined,
     ziHourPolicy: 'lateZiNextDay',
+    luckTimeBasis: 'clock',
     directPillars: {
       year: '',
       month: '',
@@ -289,10 +290,33 @@ const chartRelationRows = computed(() => {
     }))
   ];
 });
+
+function parseLuckDateTime(value: string | undefined, fallbackYear: number) {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?/);
+  if (!match) return new Date(fallbackYear, 0, 1);
+  return new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    Number(match[4] ?? 0),
+    Number(match[5] ?? 0)
+  );
+}
+
+function findCurrentLuckCycle(cycles: LuckCycle[], now = new Date()) {
+  const ordered = [...cycles].sort((a, b) => a.index - b.index);
+  return (
+    ordered.find((cycle, index) => {
+      const start = parseLuckDateTime(cycle.startSolarDateTime, cycle.startYear);
+      const next = ordered[index + 1] ? parseLuckDateTime(ordered[index + 1].startSolarDateTime, ordered[index + 1].startYear) : null;
+      return now >= start && (!next || now < next);
+    }) ?? ordered.find((cycle) => now.getFullYear() >= cycle.startYear && now.getFullYear() <= cycle.endYear)
+  );
+}
+
 const currentLuckIndex = computed(() => {
   const cycles = chart.value?.luck.cycles ?? [];
-  const year = new Date().getFullYear();
-  return cycles.find((cycle) => year >= cycle.startYear && year <= cycle.endYear)?.index ?? cycles[0]?.index ?? 0;
+  return findCurrentLuckCycle(cycles)?.index ?? cycles[0]?.index ?? 0;
 });
 const currentLuckCycle = computed(() => {
   const cycles = chart.value?.luck.cycles ?? [];
@@ -736,8 +760,7 @@ async function loadLocalState() {
   chart.value = sharedProfile.value?.chart ?? null;
   const activeProfile = birthProfiles.value.find((profile) => profile.id === sharedProfile.value?.activeBirthProfileId);
   if (activeProfile) {
-    chart.value = activeProfile.chart;
-    syncBirthDraftFromProfile(activeProfile);
+    await activateBirthProfile(activeProfile, { silent: true });
   } else if (!chart.value && birthProfiles.value[0]) {
     await activateBirthProfile(birthProfiles.value[0], { silent: true });
   }
@@ -766,7 +789,12 @@ async function loadBirthProfiles() {
 }
 
 function cloneBirthInput(input: BirthDateTimeInput): BirthDateTimeInput {
-  return JSON.parse(JSON.stringify(input));
+  const cloned = JSON.parse(JSON.stringify(input)) as BirthDateTimeInput;
+  return {
+    ...cloned,
+    ziHourPolicy: cloned.ziHourPolicy ?? 'lateZiNextDay',
+    luckTimeBasis: cloned.luckTimeBasis ?? 'clock'
+  };
 }
 
 function syncBirthDraftFromInput(input: BirthDateTimeInput, name = '', id = '') {
@@ -814,10 +842,35 @@ function formatBirthProfileMeta(profile: BirthProfile) {
   return `${calendar} ${profile.input.year}-${padNumber(profile.input.month)}-${padNumber(profile.input.day)} ${padNumber(profile.input.hour)}:${padNumber(profile.input.minute)}`;
 }
 
+function formatLuckTimeBasis(basis?: BirthDateTimeInput['luckTimeBasis']) {
+  return basis === 'trueSolar' ? '真太阳时' : '钟表时间';
+}
+
+function formatLuckSummary(luck: BaziChart['luck']) {
+  if (luck.unavailableReason) return `起运 ${luck.unavailableReason}`;
+  return [
+    `起运 ${luck.startAgeText}`,
+    luck.startSolarDateTime ? `交运 ${luck.startSolarDateTime}` : '',
+    formatLuckTimeBasis(luck.timeBasis)
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+function formatLuckCycleRange(cycle: LuckCycle) {
+  const startYear = cycle.displayStartYear ?? cycle.startYear;
+  const endYear = cycle.displayEndYear ?? cycle.endYear;
+  const startAge = cycle.displayStartAge ?? cycle.startAge;
+  const endAge = cycle.displayEndAge ?? cycle.endAge;
+  return `${startYear}-${endYear} · ${startAge}-${endAge}岁`;
+}
+
 async function activateBirthProfile(profile: BirthProfile, options: { silent?: boolean; closeModal?: boolean } = {}) {
-  chart.value = profile.chart;
-  syncBirthDraftFromProfile(profile);
-  sharedProfile.value = await saveSharedChart(profile.chart, profile.id);
+  const birthInput = cloneBirthInput(profile.input);
+  const nextChart = createBaziChart(birthInput);
+  chart.value = nextChart;
+  syncBirthDraftFromInput(birthInput, profile.name, profile.id);
+  sharedProfile.value = await saveSharedChart(nextChart, profile.id);
   if (options.closeModal) birthModalOpen.value = false;
   if (!options.silent) setMessage(`已切换到 ${profile.name}`);
 }
@@ -1654,6 +1707,13 @@ onMounted(async () => {
                 <option value="lateZiSameDay">晚子时不换日</option>
               </select>
             </label>
+            <label v-if="birthForm.calendarType !== 'bazi'">
+              起运基准
+              <select v-model="birthForm.luckTimeBasis">
+                <option value="clock">钟表时间（对齐常见排盘）</option>
+                <option value="trueSolar">真太阳时</option>
+              </select>
+            </label>
             <div class="actions-row">
               <button class="primary-button" type="submit">
                 <Save :size="18" aria-hidden="true" />
@@ -1913,7 +1973,7 @@ onMounted(async () => {
             <div class="stats-grid">
               <span v-for="(value, key) in chart.fiveElementStats" :key="key">{{ key }} {{ value }}</span>
             </div>
-            <p class="note-line">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · 起运 {{ chart.luck.startAgeText }}</p>
+            <p class="note-line">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · {{ formatLuckSummary(chart.luck) }}</p>
             <section class="chart-section">
               <div class="chart-section-title">
                 <span>命盘要素</span>
@@ -1972,7 +2032,7 @@ onMounted(async () => {
                 <details v-for="cycle in chart.luck.cycles" :key="cycle.index" class="luck-cycle" :open="cycle.index === currentLuckIndex">
                   <summary>
                     <span>{{ cycle.ganZhi }}</span>
-                    <small>{{ cycle.startYear }}-{{ cycle.endYear }} · {{ cycle.startAge }}-{{ cycle.endAge }}岁</small>
+                    <small>{{ formatLuckCycleRange(cycle) }}<template v-if="cycle.startSolarDateTime"> · 交运 {{ cycle.startSolarDateTime }}</template></small>
                   </summary>
                   <div class="liu-nian-grid">
                     <span v-for="liuNian in cycle.liuNian ?? []" :key="`${cycle.index}-${liuNian.year}`">
