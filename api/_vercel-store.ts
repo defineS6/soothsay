@@ -511,11 +511,30 @@ export function sendText(res: any, status: number, text: string, headers: Record
 }
 
 async function readBodyBuffer(req: any) {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  if (Buffer.isBuffer(req.body)) return req.body;
+  if (typeof req.body === 'string') {
+    return Buffer.from(req.body, req.isBase64Encoded ? 'base64' : 'utf8');
   }
-  return Buffer.concat(chunks);
+  if (req.body && typeof req.body === 'object') {
+    if (Buffer.isBuffer(req.body.data)) return req.body.data;
+    if (typeof req.body.data === 'string') return Buffer.from(req.body.data, req.isBase64Encoded ? 'base64' : 'utf8');
+  }
+
+  const chunks: Buffer[] = [];
+  if (req?.[Symbol.asyncIterator]) {
+    for await (const chunk of req) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
+
+  return new Promise<Buffer>((resolve, reject) => {
+    req.on('data', (chunk: Buffer | string) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
 }
 
 export async function readJson(req: any) {
@@ -579,8 +598,9 @@ function parseContentDisposition(value: string) {
 }
 
 export async function readMultipartFile(req: any): Promise<UploadedFile | null> {
-  const contentType = String(req.headers?.['content-type'] ?? '');
-  const boundary = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[1] ?? /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[2];
+  const contentType = String(req.headers?.['content-type'] ?? req.headers?.['Content-Type'] ?? '');
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
+  const boundary = boundaryMatch?.[1] ?? boundaryMatch?.[2];
   if (!boundary) return null;
 
   const body = await readBodyBuffer(req);

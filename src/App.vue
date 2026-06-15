@@ -162,6 +162,8 @@ const adminSession = reactive<AdminSession>({
   username: '',
   password: ''
 });
+const adminRememberStorageKey = 'soothsay.adminSession.v1';
+const adminRemember = ref(false);
 const adminAuthed = ref(false);
 const adminMessage = ref('');
 const adminPersonas = ref<PersonaSkin[]>([]);
@@ -1098,11 +1100,39 @@ async function loginAdmin() {
   adminMessage.value = '';
   try {
     await verifyAdmin(adminSession);
+    saveRememberedAdminSession();
     adminAuthed.value = true;
     await reloadAdminPersonas();
   } catch (error: any) {
     adminMessage.value = error?.message ?? '登录失败';
   }
+}
+
+function loadRememberedAdminSession() {
+  try {
+    const raw = window.localStorage.getItem(adminRememberStorageKey);
+    if (!raw) return;
+    const remembered = JSON.parse(raw) as Partial<AdminSession>;
+    adminSession.username = typeof remembered.username === 'string' ? remembered.username : '';
+    adminSession.password = typeof remembered.password === 'string' ? remembered.password : '';
+    adminRemember.value = Boolean(adminSession.username || adminSession.password);
+  } catch {
+    window.localStorage.removeItem(adminRememberStorageKey);
+  }
+}
+
+function saveRememberedAdminSession() {
+  if (!adminRemember.value) {
+    window.localStorage.removeItem(adminRememberStorageKey);
+    return;
+  }
+  window.localStorage.setItem(
+    adminRememberStorageKey,
+    JSON.stringify({
+      username: adminSession.username,
+      password: adminSession.password
+    })
+  );
 }
 
 async function reloadAdminPersonas() {
@@ -1410,6 +1440,7 @@ async function removePersona(persona: PersonaSkin) {
 
 onMounted(async () => {
   locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey) ?? navigator.language);
+  loadRememberedAdminSession();
   document.documentElement.lang = locale.value;
   startOpeningAnimation();
   loading.value = true;
@@ -2196,6 +2227,10 @@ onMounted(async () => {
         <label>
           密码
           <input v-model="adminSession.password" type="password" autocomplete="current-password" @keyup.enter="loginAdmin" />
+        </label>
+        <label class="check-row admin-remember">
+          <input v-model="adminRemember" type="checkbox" @change="saveRememberedAdminSession" />
+          记住后台账号和密码
         </label>
         <button class="primary-button" type="button" @click="loginAdmin">
           <Lock :size="18" aria-hidden="true" />

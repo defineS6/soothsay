@@ -2263,6 +2263,10 @@ button:focus-visible,
   margin: 0 auto;
 }
 
+.admin-remember {
+  margin-top: -4px;
+}
+
 .admin-layout {
   width: min(1180px, 100%);
 }
