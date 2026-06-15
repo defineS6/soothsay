@@ -112,7 +112,7 @@ docker run -d \
 
 ### Vercel 部署
 
-仓库包含 `vercel.json` 与 `api/[...route].ts`，可以部署到 Vercel。Vercel 环境没有持久化文件目录，必须使用 PostgreSQL 保存后台角色和上传图片。
+仓库包含 `vercel.json` 与 `api/` 下的 Vercel 函数入口，可以部署到 Vercel。未配置 PostgreSQL 时仍可加载内置大师；Vercel 环境没有持久化文件目录，后台角色修改和上传图片需要 PostgreSQL 才能长期保存。
 
 也可以点击 README 顶部的 **Deploy with Vercel** 按钮一键创建项目。
 
@@ -250,7 +250,7 @@ With PostgreSQL enabled, the service automatically creates:
 
 ### Vercel deployment
 
-The repository includes `vercel.json` and `api/[...route].ts` for Vercel. Because Vercel does not provide persistent local file storage, PostgreSQL is required for admin personas and uploaded images.
+The repository includes `vercel.json` and Vercel function entries under `api/`. Built-in personas can load without PostgreSQL; because Vercel does not provide persistent local file storage, PostgreSQL is required for persistent admin persona changes and uploaded images.
 
 You can also use the **Deploy with Vercel** button at the top of this README to create the project.
 

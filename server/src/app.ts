@@ -41,6 +41,10 @@ export function createApp(options: CreateAppOptions = {}) {
       console.info(message);
     })
   );
+  app.onError((error, c) => {
+    console.error(error);
+    return c.json({ error: error instanceof Error ? error.message : '服务异常' }, 500);
+  });
   if (ensureStore) {
     app.use('*', async (c, next) => {
       if (requirePostgres && !isPostgresEnabled()) {

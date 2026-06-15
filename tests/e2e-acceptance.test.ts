@@ -332,18 +332,17 @@ describe('OpenSpec 端到端验收', () => {
     expect(createdPersona?.backgroundIntensity).toBe(100);
   });
 
-  it('Vercel 模式缺少 PostgreSQL 时返回明确错误', async () => {
+  it('Vercel API 模式缺少 PostgreSQL 时仍可加载内置大师', async () => {
     await createTestApp();
     const { createApp } = await import('../server/src/app');
     const app = createApp({
-      ensureStore: true,
-      requirePostgres: true,
       serveStaticAssets: false,
       mountApiUploads: true
     });
 
     const response = await app.request('/api/personas');
-    expect(response.status).toBe(500);
-    expect(await response.text()).toContain('Vercel 部署需要配置');
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.personas.map((persona: PersonaSkin) => persona.id)).toContain('builtin-daoist');
   });
 });

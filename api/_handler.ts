@@ -6,8 +6,6 @@ export const config = {
 };
 
 const app = createApp({
-  ensureStore: true,
-  requirePostgres: true,
   serveStaticAssets: false,
   mountApiUploads: true
 });

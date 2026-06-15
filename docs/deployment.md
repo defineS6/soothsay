@@ -56,9 +56,9 @@ Render 部署时可以使用平台提供的 `DATABASE_URL`，或者手动设置 
 
 ## Vercel 部署
 
-仓库已包含 `vercel.json` 和 `api/[...route].ts`。Vercel 会把前端构建到 `dist`，并把 `/api/*` 交给 Hono Serverless Function；`/uploads/*` 会重写到 `/api/uploads/*`，从 PostgreSQL 的 `soothsay_uploads` 表读取。
+仓库已包含 `vercel.json` 和 `api/` 下的 Vercel 函数入口。Vercel 会把前端构建到 `dist`，并把 `/api/*` 交给 Hono Serverless Function；`/uploads/*` 会重写到 `/api/uploads/*`，从 PostgreSQL 的 `soothsay_uploads` 表读取。
 
-Vercel 没有持久化本地文件目录，因此必须配置 PostgreSQL：
+未配置 PostgreSQL 时，前台仍可加载内置大师。Vercel 没有持久化本地文件目录，因此后台角色修改和上传图片需要配置 PostgreSQL 才能长期保存：
 
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
@@ -69,7 +69,7 @@ Vercel 没有持久化本地文件目录，因此必须配置 PostgreSQL：
 - `PGSSLMODE=require`：多数云数据库需要 SSL。
 - `PG_POOL_MAX=1`：降低 Serverless 并发下的连接数压力。
 
-如果没有配置 PostgreSQL，Vercel API 会返回明确错误，不会尝试写入临时或只读文件目录。
+如果没有配置 PostgreSQL，正式使用时请不要依赖后台上传和角色修改的持久化结果。
 
 ## 隐私边界
 
