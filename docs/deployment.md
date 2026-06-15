@@ -63,6 +63,7 @@ Render 部署时可以使用平台提供的 `DATABASE_URL`，或者手动设置 
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `DATABASE_URL` 或 `SOOTHSAY_PG_DSN`
+- `NODEJS_HELPERS=0`：让 Hono 接管原始 Node 请求，Vercel 函数必需。
 
 建议额外配置：
 

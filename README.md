@@ -4,7 +4,7 @@
 
 Demo: [https://soothsay.onrender.com/](https://soothsay.onrender.com/)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FdefineS6%2Fsoothsay&project-name=soothsay&repository-name=soothsay&env=ADMIN_USERNAME,ADMIN_PASSWORD,DATABASE_URL,PGSSLMODE,PG_POOL_MAX&envDescription=Soothsay%20on%20Vercel%20requires%20admin%20credentials%20and%20PostgreSQL%20storage.&envLink=https%3A%2F%2Fgithub.com%2FdefineS6%2Fsoothsay%23vercel-%E9%83%A8%E7%BD%B2)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FdefineS6%2Fsoothsay&project-name=soothsay&repository-name=soothsay&env=ADMIN_USERNAME,ADMIN_PASSWORD,DATABASE_URL,NODEJS_HELPERS,PGSSLMODE,PG_POOL_MAX&envDescription=Soothsay%20on%20Vercel%20requires%20admin%20credentials%20and%20PostgreSQL%20storage.%20Set%20NODEJS_HELPERS%20to%200.&envLink=https%3A%2F%2Fgithub.com%2FdefineS6%2Fsoothsay%23vercel-%E9%83%A8%E7%BD%B2)
 
 ---
 
@@ -121,6 +121,7 @@ docker run -d \
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `DATABASE_URL` 或 `SOOTHSAY_PG_DSN`
+- `NODEJS_HELPERS=0`
 
 建议配置：
 
@@ -259,6 +260,7 @@ Required variables:
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `DATABASE_URL` or `SOOTHSAY_PG_DSN`
+- `NODEJS_HELPERS=0`
 
 Recommended variables:
 

@@ -3,6 +3,9 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "env": {
+    "NODEJS_HELPERS": "0"
+  },
   "rewrites": [
     {
       "source": "/uploads/:path*",
