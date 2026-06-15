@@ -52,14 +52,28 @@ function sendText(res: any, status: number, text: string) {
   res.end(text);
 }
 
+function readUploadFilename(req: any) {
+  const queryFilename = req.query?.filename;
+  const rawFromQuery = Array.isArray(queryFilename) ? queryFilename[0] : queryFilename;
+  if (rawFromQuery) {
+    return decodeURIComponent(String(rawFromQuery).split('/').pop() ?? '');
+  }
+
+  try {
+    const url = new URL(String(req.url ?? ''), 'https://soothsay.local');
+    return decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() ?? '');
+  } catch {
+    return '';
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     sendText(res, 405, 'Method Not Allowed');
     return;
   }
 
-  const rawFilename = String(req.query?.filename ?? '').split('/').pop() ?? '';
-  const filename = decodeURIComponent(rawFilename);
+  const filename = readUploadFilename(req);
   if (!filename) {
     sendText(res, 404, 'Not Found');
     return;
