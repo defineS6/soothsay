@@ -141,7 +141,8 @@ docker run -d \
 
 ### 联系方式
 
-- QQ群：940418828
+- QQ群：
+  ![QQ群](public/qun/qun.png)
 
 ---
 
@@ -278,7 +279,8 @@ See [docs/deployment.md](docs/deployment.md) for additional deployment details i
 
 ### Contact
 
-- QQ group: 940418828
+- QQ group:
+  ![QQ group](public/qun/qun.png)
 
 ## License
 
