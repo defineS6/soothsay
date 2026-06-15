@@ -223,7 +223,15 @@ const cropSession = reactive({
 });
 
 const selectedPersona = computed(() => personas.value.find((persona) => persona.id === selectedPersonaId.value) ?? personas.value[0]);
-const sceneOpacity = computed(() => (clampPercent(selectedPersona.value?.backgroundIntensity, 100) / 100).toFixed(2));
+const sceneIntensity = computed(() => clampPercent(selectedPersona.value?.backgroundIntensity, 100) / 100);
+const sceneOpacity = computed(() => sceneIntensity.value.toFixed(2));
+const sceneSaturation = computed(() => (0.24 + sceneIntensity.value * 0.66).toFixed(2));
+const sceneContrast = computed(() => (0.96 + sceneIntensity.value * 0.08).toFixed(2));
+const sceneSepia = computed(() => (0.16 - sceneIntensity.value * 0.1).toFixed(2));
+const sceneWashTop = computed(() => (0.72 - sceneIntensity.value * 0.48).toFixed(2));
+const sceneWashBottom = computed(() => (0.88 - sceneIntensity.value * 0.42).toFixed(2));
+const sceneWashSideStart = computed(() => (0.97 - sceneIntensity.value * 0.49).toFixed(2));
+const sceneWashSideEnd = computed(() => (0.9 - sceneIntensity.value * 0.5).toFixed(2));
 const directPillars = computed(() => birthForm.directPillars!);
 const savedFacts = computed(() => sharedProfile.value?.facts ?? []);
 const historyMessages = computed(() => roleHistory.value?.messages ?? []);
@@ -1462,7 +1470,14 @@ onMounted(async () => {
     :style="{
       '--scene-desktop': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})`,
       '--scene-mobile': `url(${selectedPersona?.mobileBackgroundUrl || selectedPersona?.backgroundUrl || '/defaults/custom-bg.svg'})`,
-      '--scene-opacity': sceneOpacity
+      '--scene-opacity': sceneOpacity,
+      '--scene-saturation': sceneSaturation,
+      '--scene-contrast': sceneContrast,
+      '--scene-sepia': sceneSepia,
+      '--scene-wash-top': sceneWashTop,
+      '--scene-wash-bottom': sceneWashBottom,
+      '--scene-wash-side-start': sceneWashSideStart,
+      '--scene-wash-side-end': sceneWashSideEnd
     }"
   >
     <div class="scene-layer"></div>

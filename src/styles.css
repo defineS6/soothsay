@@ -78,6 +78,13 @@ button:disabled {
   --scene-desktop: url("/defaults/custom-bg.svg");
   --scene-mobile: var(--scene-desktop);
   --scene-opacity: 1;
+  --scene-saturation: 0.9;
+  --scene-contrast: 1.04;
+  --scene-sepia: 0.06;
+  --scene-wash-top: 0.24;
+  --scene-wash-bottom: 0.46;
+  --scene-wash-side-start: 0.48;
+  --scene-wash-side-end: 0.4;
   position: relative;
   display: flex;
   height: 100vh;
@@ -102,8 +109,7 @@ button:disabled {
   background-image: var(--scene-desktop);
   background-size: cover;
   background-position: center;
-  /* 背景图多为冷色：降饱和并微暖化，使其退为几乎无色的暖灰纹理，让内容主导 */
-  filter: saturate(0.2) sepia(0.12);
+  filter: saturate(var(--scene-saturation)) sepia(var(--scene-sepia)) contrast(var(--scene-contrast));
   opacity: var(--scene-opacity);
 }
 
@@ -112,8 +118,8 @@ button:disabled {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(250, 249, 245, 0.4), rgba(232, 230, 220, 0.82)),
-    linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9));
+    linear-gradient(180deg, rgba(250, 249, 245, var(--scene-wash-top)), rgba(232, 230, 220, var(--scene-wash-bottom))),
+    linear-gradient(90deg, rgba(250, 249, 245, var(--scene-wash-side-start)), rgba(250, 249, 245, var(--scene-wash-side-end)));
 }
 
 .topbar {
