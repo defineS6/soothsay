@@ -239,6 +239,7 @@ describe('OpenSpec 端到端验收', () => {
         },
         avatarUrl: uploadData.url,
         backgroundUrl: uploadData.url,
+        mobileBackgroundUrl: `${uploadData.url}?mobile=1`,
         opening: '用现实派方式做验收。',
         customPrompt: '这是验收角色的自定义提示词。',
         tone: { directness: 80, detail: 45 },
@@ -247,11 +248,35 @@ describe('OpenSpec 端到端验收', () => {
     });
     expect(create.status).toBe(201);
     const created = await create.json();
+    expect(created.persona.backgroundUrl).toBe(uploadData.url);
+    expect(created.persona.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=1`);
+
+    const update = await app.request(`/api/admin/personas/${created.persona.id}`, {
+      method: 'PUT',
+      headers: { Authorization: authHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: '验收大师',
+        engineId: 'engine-acceptance',
+        avatarUrl: uploadData.url,
+        backgroundUrl: `${uploadData.url}?desktop=2`,
+        mobileBackgroundUrl: `${uploadData.url}?mobile=2`,
+        opening: '用现实派方式做验收。',
+        customPrompt: '这是验收角色的自定义提示词。',
+        tone: { directness: 80, detail: 45 },
+        categories: ['bazi', 'daily']
+      })
+    });
+    expect(update.status).toBe(200);
+    const updated = await update.json();
+    expect(updated.persona.backgroundUrl).toBe(`${uploadData.url}?desktop=2`);
+    expect(updated.persona.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=2`);
 
     const list = await app.request('/api/personas');
     const listData = await list.json();
     const createdPersona = listData.personas.find((item: PersonaSkin) => item.id === created.persona.id);
     expect(createdPersona?.customPrompt).toBe('这是验收角色的自定义提示词。');
+    expect(createdPersona?.backgroundUrl).toBe(`${uploadData.url}?desktop=2`);
+    expect(createdPersona?.mobileBackgroundUrl).toBe(`${uploadData.url}?mobile=2`);
     expect(listData.engines.some((item: PersonaEngine) => item.id === 'engine-acceptance' && item.name === '验收体系')).toBe(true);
 
     const deleteBuiltin = await app.request('/api/admin/personas/builtin-daoist', {
@@ -271,5 +296,32 @@ describe('OpenSpec 端到端验收', () => {
     const afterRestartData = await afterRestart.json();
     expect(afterRestartData.personas.some((item: PersonaSkin) => item.id === created.persona.id)).toBe(true);
     expect(afterRestartData.engines.some((item: PersonaEngine) => item.id === 'engine-acceptance')).toBe(true);
+  });
+
+  it('兼容旧角色未设置手机端背景时回退电脑端背景', async () => {
+    const { app } = await createTestApp();
+
+    const create = await app.request('/api/admin/personas', {
+      method: 'POST',
+      headers: { Authorization: authHeader(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: '旧字段大师',
+        engineId: 'daoist',
+        avatarUrl: '/defaults/custom-avatar.svg',
+        backgroundUrl: '/defaults/custom-bg.svg',
+        opening: '测试旧背景字段兼容。',
+        customPrompt: '',
+        tone: { directness: 50, detail: 50 },
+        categories: ['bazi']
+      })
+    });
+    expect(create.status).toBe(201);
+    const created = await create.json();
+    expect(created.persona.mobileBackgroundUrl).toBe('/defaults/custom-bg.svg');
+
+    const list = await app.request('/api/personas');
+    const listData = await list.json();
+    const createdPersona = listData.personas.find((item: PersonaSkin) => item.id === created.persona.id);
+    expect(createdPersona?.mobileBackgroundUrl).toBe(createdPersona?.backgroundUrl);
   });
 });

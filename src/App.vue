@@ -63,7 +63,7 @@ import {
 } from '@server-shared/persona';
 
 type Panel = 'reading' | 'settings' | 'admin';
-type CropField = 'avatarFile' | 'backgroundFile';
+type CropField = 'avatarFile' | 'backgroundFile' | 'mobileBackgroundFile';
 type MobileTab = 'home' | 'chart' | 'reading' | 'mine';
 type MarkdownInline = {
   type: 'text' | 'strong' | 'em' | 'code';
@@ -168,6 +168,7 @@ const adminPersonas = ref<PersonaSkin[]>([]);
 const adminGeneratedHighlight = ref(false);
 const avatarPreviewUrl = ref('');
 const backgroundPreviewUrl = ref('');
+const mobileBackgroundPreviewUrl = ref('');
 const cropImageRef = ref<HTMLImageElement | null>(null);
 const cropFrameRef = ref<HTMLDivElement | null>(null);
 const adminGenerator = reactive({
@@ -182,13 +183,15 @@ const adminForm = reactive({
   customPrompt: '',
   avatarUrl: '/defaults/custom-avatar.svg',
   backgroundUrl: '/defaults/custom-bg.svg',
+  mobileBackgroundUrl: '/defaults/custom-bg.svg',
   tone: {
     directness: 50,
     detail: 60
   },
   categories: ['bazi', 'daily'] as FortuneCategory[],
   avatarFile: null as File | null,
-  backgroundFile: null as File | null
+  backgroundFile: null as File | null,
+  mobileBackgroundFile: null as File | null
 });
 const adminEngineForm = reactive({
   id: '',
@@ -228,8 +231,15 @@ const adminEditingPersona = computed(() => adminPersonas.value.find((persona) =>
 const adminEditingBuiltin = computed(() => Boolean(adminEditingPersona.value?.builtin));
 const avatarPreview = computed(() => avatarPreviewUrl.value || adminForm.avatarUrl);
 const backgroundPreview = computed(() => backgroundPreviewUrl.value || adminForm.backgroundUrl);
-const cropTitle = computed(() => (cropSession.field === 'avatarFile' ? '裁剪头像' : '裁剪背景'));
-const cropHint = computed(() => (cropSession.field === 'avatarFile' ? '头像会按正方形保存。' : '背景会按 16:9 横幅保存。'));
+const mobileBackgroundPreview = computed(() => mobileBackgroundPreviewUrl.value || adminForm.mobileBackgroundUrl);
+const cropTitle = computed(() => {
+  if (cropSession.field === 'avatarFile') return '裁剪头像';
+  return cropSession.field === 'backgroundFile' ? '裁剪电脑端背景' : '裁剪手机端背景';
+});
+const cropHint = computed(() => {
+  if (cropSession.field === 'avatarFile') return '头像会按正方形保存。';
+  return cropSession.field === 'backgroundFile' ? '电脑端背景会按 16:9 横幅保存。' : '手机端背景会按 9:16 竖图保存。';
+});
 const cropFrameStyle = computed(() => ({ aspectRatio: String(cropSession.aspectRatio) }));
 const cropImageStyle = computed(() => ({
   width: `${cropSession.baseWidth}px`,
@@ -1104,10 +1114,12 @@ function resetAdminForm() {
     customPrompt: '',
     avatarUrl: '/defaults/custom-avatar.svg',
     backgroundUrl: '/defaults/custom-bg.svg',
+    mobileBackgroundUrl: '/defaults/custom-bg.svg',
     tone: { directness: 50, detail: 60 },
     categories: ['bazi', 'daily'],
     avatarFile: null,
-    backgroundFile: null
+    backgroundFile: null,
+    mobileBackgroundFile: null
   });
 }
 
@@ -1122,18 +1134,22 @@ function editPersona(persona: PersonaSkin) {
     customPrompt: persona.customPrompt ?? '',
     avatarUrl: persona.avatarUrl,
     backgroundUrl: persona.backgroundUrl,
+    mobileBackgroundUrl: persona.mobileBackgroundUrl || persona.backgroundUrl,
     tone: { ...persona.tone },
     categories: [...persona.categories],
     avatarFile: null,
-    backgroundFile: null
+    backgroundFile: null,
+    mobileBackgroundFile: null
   });
 }
 
 function clearCropPreviews() {
   if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value);
   if (backgroundPreviewUrl.value) URL.revokeObjectURL(backgroundPreviewUrl.value);
+  if (mobileBackgroundPreviewUrl.value) URL.revokeObjectURL(mobileBackgroundPreviewUrl.value);
   avatarPreviewUrl.value = '';
   backgroundPreviewUrl.value = '';
+  mobileBackgroundPreviewUrl.value = '';
 }
 
 function openCropper(file: File, field: CropField) {
@@ -1142,7 +1158,7 @@ function openCropper(file: File, field: CropField) {
   cropSession.field = field;
   cropSession.sourceUrl = URL.createObjectURL(file);
   cropSession.fileName = file.name;
-  cropSession.aspectRatio = field === 'avatarFile' ? 1 : 16 / 9;
+  cropSession.aspectRatio = field === 'avatarFile' ? 1 : field === 'backgroundFile' ? 16 / 9 : 9 / 16;
   cropSession.zoom = 1;
   cropSession.offsetX = 0;
   cropSession.offsetY = 0;
@@ -1212,7 +1228,8 @@ function endCropDrag() {
 }
 
 function createCroppedFile(blob: Blob) {
-  const baseName = cropSession.fileName.replace(/\.[^.]+$/, '') || (cropSession.field === 'avatarFile' ? 'avatar' : 'background');
+  const fallbackName = cropSession.field === 'avatarFile' ? 'avatar' : cropSession.field === 'backgroundFile' ? 'background' : 'mobile-background';
+  const baseName = cropSession.fileName.replace(/\.[^.]+$/, '') || fallbackName;
   return new File([blob], `${baseName}-cropped.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 }
 
@@ -1221,7 +1238,7 @@ async function confirmCrop() {
   const frame = cropFrameRef.value;
   if (!image || !frame || !cropSession.naturalWidth || !cropSession.naturalHeight) return;
 
-  const outputWidth = cropSession.field === 'avatarFile' ? 640 : 1440;
+  const outputWidth = cropSession.field === 'avatarFile' ? 640 : cropSession.field === 'backgroundFile' ? 1440 : 1080;
   const outputHeight = Math.round(outputWidth / cropSession.aspectRatio);
   const canvas = document.createElement('canvas');
   canvas.width = outputWidth;
@@ -1264,10 +1281,14 @@ async function confirmCrop() {
     if (avatarPreviewUrl.value) URL.revokeObjectURL(avatarPreviewUrl.value);
     avatarPreviewUrl.value = previewUrl;
     adminMessage.value = '头像已裁剪，保存角色后生效';
-  } else {
+  } else if (cropSession.field === 'backgroundFile') {
     if (backgroundPreviewUrl.value) URL.revokeObjectURL(backgroundPreviewUrl.value);
     backgroundPreviewUrl.value = previewUrl;
-    adminMessage.value = '背景已裁剪，保存角色后生效';
+    adminMessage.value = '电脑端背景已裁剪，保存角色后生效';
+  } else {
+    if (mobileBackgroundPreviewUrl.value) URL.revokeObjectURL(mobileBackgroundPreviewUrl.value);
+    mobileBackgroundPreviewUrl.value = previewUrl;
+    adminMessage.value = '手机端背景已裁剪，保存角色后生效';
   }
   closeCropper();
 }
@@ -1315,10 +1336,12 @@ async function generatePersonaDraft() {
       customPrompt: draft.persona.customPrompt,
       avatarUrl: '/defaults/custom-avatar.svg',
       backgroundUrl: '/defaults/custom-bg.svg',
+      mobileBackgroundUrl: '/defaults/custom-bg.svg',
       tone: { ...draft.persona.tone },
       categories: [...draft.persona.categories],
       avatarFile: null,
-      backgroundFile: null
+      backgroundFile: null,
+      mobileBackgroundFile: null
     });
     triggerAdminGeneratedHighlight();
     adminMessage.value = 'AI 已生成大师草稿，请检查后保存';
@@ -1335,6 +1358,7 @@ async function savePersona() {
     const engine = buildAdminEnginePayload();
     const avatarUrl = await uploadIfNeeded(adminForm.avatarFile, adminForm.avatarUrl);
     const backgroundUrl = await uploadIfNeeded(adminForm.backgroundFile, adminForm.backgroundUrl);
+    const mobileBackgroundUrl = await uploadIfNeeded(adminForm.mobileBackgroundFile, adminForm.mobileBackgroundUrl || backgroundUrl);
     const payload: PersonaPayload = {
       name: adminForm.name,
       engineId: adminForm.engineId,
@@ -1342,6 +1366,7 @@ async function savePersona() {
       customPrompt: adminForm.customPrompt,
       avatarUrl,
       backgroundUrl,
+      mobileBackgroundUrl,
       tone: { ...adminForm.tone },
       categories: [...adminForm.categories],
       ...(engine ? { engine } : {})
@@ -1393,7 +1418,10 @@ onMounted(async () => {
   <main
     class="app-shell"
     :class="{ 'mobile-workspace-shell': activePanel === 'reading' && (mobileTab === 'chart' || mobileTab === 'reading') }"
-    :style="{ '--scene': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})` }"
+    :style="{
+      '--scene-desktop': `url(${selectedPersona?.backgroundUrl ?? '/defaults/custom-bg.svg'})`,
+      '--scene-mobile': `url(${selectedPersona?.mobileBackgroundUrl || selectedPersona?.backgroundUrl || '/defaults/custom-bg.svg'})`
+    }"
   >
     <div class="scene-layer"></div>
     <div
@@ -2171,7 +2199,7 @@ onMounted(async () => {
             <UserRound :size="18" aria-hidden="true" />
             <h2>{{ adminEditingBuiltin ? '编辑内置资源' : adminEditing ? '编辑角色' : '创建角色' }}</h2>
           </div>
-          <p v-if="adminEditingBuiltin" class="note-line">内置角色只能调整头像和背景，名字、体系与话术保持系统默认。</p>
+          <p v-if="adminEditingBuiltin" class="note-line">内置角色只能调整头像和网页背景，名字、体系与话术保持系统默认。</p>
           <div v-else class="ai-generator" :class="{ 'generated-highlight': adminGeneratedHighlight }">
             <div class="generator-heading">
               <Sparkles :size="18" aria-hidden="true" />
@@ -2256,10 +2284,17 @@ onMounted(async () => {
             </div>
           </label>
           <label class="upload-field">
-            背景
+            电脑端网页背景
             <div class="upload-preview-row">
-              <img class="upload-preview background" :src="backgroundPreview" alt="背景预览" />
+              <img class="upload-preview background" :src="backgroundPreview" alt="电脑端网页背景预览" />
               <input type="file" accept="image/*" @change="setUpload($event, 'backgroundFile')" />
+            </div>
+          </label>
+          <label class="upload-field">
+            手机端网页背景
+            <div class="upload-preview-row">
+              <img class="upload-preview mobile-background" :src="mobileBackgroundPreview" alt="手机端网页背景预览" />
+              <input type="file" accept="image/*" @change="setUpload($event, 'mobileBackgroundFile')" />
             </div>
           </label>
           <div class="actions-row">

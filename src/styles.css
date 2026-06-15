@@ -75,7 +75,8 @@ button:disabled {
 }
 
 .app-shell {
-  --scene: url("/defaults/custom-bg.svg");
+  --scene-desktop: url("/defaults/custom-bg.svg");
+  --scene-mobile: var(--scene-desktop);
   position: relative;
   display: flex;
   height: 100vh;
@@ -92,7 +93,7 @@ button:disabled {
   z-index: -2;
   background-image:
     linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9)),
-    var(--scene);
+    var(--scene-desktop);
   background-size: cover;
   background-position: center;
   /* 背景图多为冷色：降饱和并微暖化，使其退为几乎无色的暖灰纹理，让内容主导 */
@@ -684,6 +685,11 @@ button:disabled {
   aspect-ratio: 16 / 9;
 }
 
+.upload-preview.mobile-background {
+  aspect-ratio: 9 / 16;
+  max-height: 220px;
+}
+
 .bagua-opening {
   position: fixed;
   inset: 0;
@@ -970,29 +976,6 @@ button:disabled {
   position: relative;
   overflow: hidden;
   padding: 18px;
-}
-
-.mobile-hero-card::after,
-.mobile-summary-card::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: min(52%, 230px);
-  height: 82%;
-  pointer-events: none;
-  background-image: var(--scene);
-  background-size: cover;
-  background-position: center;
-  opacity: 0.18;
-  filter: saturate(0.1) sepia(0.15);
-  mask-image: linear-gradient(90deg, transparent, #000 44%);
-}
-
-.mobile-hero-card > div,
-.mobile-summary-card > * {
-  position: relative;
-  z-index: 1;
 }
 
 .mobile-hero-dot {
@@ -2602,6 +2585,12 @@ button:focus-visible,
 
   .app-shell.mobile-workspace-shell {
     overflow: hidden;
+  }
+
+  .scene-layer {
+    background-image:
+      linear-gradient(90deg, rgba(250, 249, 245, 0.97), rgba(250, 249, 245, 0.9)),
+      var(--scene-mobile);
   }
 
   .topbar {

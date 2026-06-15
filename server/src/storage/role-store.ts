@@ -127,6 +127,7 @@ function sanitizeRolePayload(payload: any, existing: PersonaSkin | undefined, en
   const opening = String(payload?.opening ?? existing?.opening ?? '').trim();
   const customPrompt = String(payload?.customPrompt ?? existing?.customPrompt ?? '').trim();
   const engineId = payload?.engineId ?? existing?.engineId;
+  const backgroundUrl = String(payload?.backgroundUrl ?? existing?.backgroundUrl ?? '/defaults/custom-bg.svg').trim();
   if (!name || name.length > 40) throw new Error('角色名字需为 1-40 个字符');
   if (!isEngineId(engineId) || !hasEngine(engines, engineId)) throw new Error('体系类型不合法');
   if (!opening || opening.length > 300) throw new Error('开场白需为 1-300 个字符');
@@ -137,7 +138,8 @@ function sanitizeRolePayload(payload: any, existing: PersonaSkin | undefined, en
     name,
     engineId,
     avatarUrl: String(payload?.avatarUrl ?? existing?.avatarUrl ?? '/defaults/custom-avatar.svg').trim(),
-    backgroundUrl: String(payload?.backgroundUrl ?? existing?.backgroundUrl ?? '/defaults/custom-bg.svg').trim(),
+    backgroundUrl,
+    mobileBackgroundUrl: String(payload?.mobileBackgroundUrl ?? existing?.mobileBackgroundUrl ?? backgroundUrl).trim(),
     tone: normalizeTone(payload?.tone ?? existing?.tone),
     opening,
     customPrompt,
@@ -150,10 +152,12 @@ function sanitizeRolePayload(payload: any, existing: PersonaSkin | undefined, en
 
 function sanitizeBuiltinMediaPayload(payload: any, base: PersonaSkin, existing?: PersonaSkin): PersonaSkin {
   const now = new Date().toISOString();
+  const backgroundUrl = String(payload?.backgroundUrl ?? existing?.backgroundUrl ?? base.backgroundUrl).trim();
   return {
     ...base,
     avatarUrl: String(payload?.avatarUrl ?? existing?.avatarUrl ?? base.avatarUrl).trim(),
-    backgroundUrl: String(payload?.backgroundUrl ?? existing?.backgroundUrl ?? base.backgroundUrl).trim(),
+    backgroundUrl,
+    mobileBackgroundUrl: String(payload?.mobileBackgroundUrl ?? existing?.mobileBackgroundUrl ?? base.mobileBackgroundUrl ?? backgroundUrl).trim(),
     customPrompt: base.customPrompt,
     builtin: true,
     createdAt: existing?.createdAt ?? base.createdAt,
@@ -167,13 +171,17 @@ function mergeBuiltinPersona(base: PersonaSkin, override?: PersonaSkin): Persona
     ...base,
     avatarUrl: override.avatarUrl || base.avatarUrl,
     backgroundUrl: override.backgroundUrl || base.backgroundUrl,
+    mobileBackgroundUrl: override.mobileBackgroundUrl || override.backgroundUrl || base.mobileBackgroundUrl || base.backgroundUrl,
     updatedAt: override.updatedAt ?? base.updatedAt
   };
 }
 
 function normalizeStoredPersona(role: PersonaSkin): PersonaSkin {
+  const backgroundUrl = role.backgroundUrl || '/defaults/custom-bg.svg';
   return {
     ...role,
+    backgroundUrl,
+    mobileBackgroundUrl: role.mobileBackgroundUrl || backgroundUrl,
     customPrompt: role.customPrompt ?? ''
   };
 }
