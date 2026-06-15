@@ -48,6 +48,7 @@ async function ensureUploadTable() {
 
 function sendText(res: any, status: number, text: string) {
   res.statusCode = status;
+  res.setHeader('X-Soothsay-Upload', 'vercel');
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.end(text);
 }
@@ -92,11 +93,12 @@ export default async function handler(req: any, res: any) {
       return;
     }
     res.statusCode = 200;
+    res.setHeader('X-Soothsay-Upload', 'vercel');
     res.setHeader('Content-Type', row.content_type);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.end(req.method === 'HEAD' ? undefined : row.body);
   } catch (error) {
     console.error(error);
-    sendText(res, 404, 'Not Found');
+    sendText(res, 500, 'Upload lookup failed');
   }
 }
