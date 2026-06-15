@@ -1,1 +1,4 @@
-export { config, default } from './_handler';
+import handler, { config } from './_handler';
+
+export { config };
+export default handler;
