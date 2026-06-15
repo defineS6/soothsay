@@ -1,4 +1,3 @@
-import pg from 'pg';
 import {
   BUILTIN_ENGINE_DEFINITIONS,
   DEFAULT_PERSONAS,
@@ -6,14 +5,12 @@ import {
   type PersonaSkin
 } from '../server/src/shared/persona';
 
-const { Pool } = pg;
-
 interface RoleStoreSnapshot {
   roles: PersonaSkin[];
   engines: PersonaEngine[];
 }
 
-let pool: pg.Pool | null = null;
+let pool: any = null;
 let ensured = false;
 
 function getPostgresDsn() {
@@ -31,10 +28,12 @@ function createSslConfig(dsn: string) {
   return { rejectUnauthorized: false };
 }
 
-function getPool() {
+async function getPool() {
   const dsn = getPostgresDsn();
   if (!dsn) return null;
   if (!pool) {
+    const pgModule = await import('pg');
+    const { Pool } = pgModule.default ?? pgModule;
     pool = new Pool({
       connectionString: dsn,
       max: Number(process.env.PG_POOL_MAX ?? 1),
@@ -45,7 +44,7 @@ function getPool() {
 }
 
 async function ensurePostgresStore() {
-  const clientPool = getPool();
+  const clientPool = await getPool();
   if (!clientPool || ensured) return;
   const client = await clientPool.connect();
   try {
@@ -116,16 +115,16 @@ function listPersonasFromSnapshot(snapshot: RoleStoreSnapshot) {
 }
 
 async function readPostgresRoleStore(): Promise<RoleStoreSnapshot | null> {
-  const clientPool = getPool();
+  const clientPool = await getPool();
   if (!clientPool) return null;
   await ensurePostgresStore();
   const [roles, engines] = await Promise.all([
-    clientPool.query<{ payload: PersonaSkin }>('SELECT payload FROM soothsay_roles ORDER BY updated_at ASC'),
-    clientPool.query<{ payload: PersonaEngine }>('SELECT payload FROM soothsay_engines ORDER BY updated_at ASC')
+    clientPool.query('SELECT payload FROM soothsay_roles ORDER BY updated_at ASC'),
+    clientPool.query('SELECT payload FROM soothsay_engines ORDER BY updated_at ASC')
   ]);
   return {
-    roles: roles.rows.map((row) => row.payload),
-    engines: engines.rows.map((row) => row.payload)
+    roles: (roles.rows as Array<{ payload: PersonaSkin }>).map((row) => row.payload),
+    engines: (engines.rows as Array<{ payload: PersonaEngine }>).map((row) => row.payload)
   };
 }
 
