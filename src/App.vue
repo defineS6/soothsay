@@ -989,10 +989,10 @@ async function addFact() {
 function startOpeningAnimation() {
   window.setTimeout(() => {
     openingAnimationClosing.value = true;
-  }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 2200 : 3800);
+  }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 2400 : 4200);
   window.setTimeout(() => {
     showOpeningAnimation.value = false;
-  }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 2600 : 4400);
+  }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 2800 : 4800);
 }
 
 function skipOpeningAnimation() {
@@ -2046,8 +2046,8 @@ onMounted(async () => {
           </div>
           <div v-if="chart" class="chart-content">
             <div class="pillar-grid">
-              <article v-for="pillar in pillarRows" :key="pillar.name" class="pillar-cell">
-                <span>{{ pillar.label }}</span>
+            <article v-for="pillar in pillarRows" :key="pillar.name" class="pillar-cell" :class="{ 'pillar-day': pillar.name === 'day' }">
+              <span>{{ pillar.label }}</span>
                 <strong>{{ pillar.ganZhi }}</strong>
                 <small>{{ pillar.tenGodOfGan }} · {{ pillar.naYin }}</small>
                 <small>藏干 {{ pillar.hiddenGan.join('、') }}</small>
@@ -2155,8 +2155,17 @@ onMounted(async () => {
             </div>
           </div>
           <div v-else class="empty-state chart-empty">
-            <p>{{ t('home.noBirthProfile') }}</p>
-            <button class="secondary-button" type="button" @click="openBirthModal">{{ t('home.openBirthProfile') }}</button>
+            <div class="chart-empty-icon" aria-hidden="true">
+              <CalendarDays :size="40" />
+            </div>
+            <div class="chart-empty-text">
+              <strong>{{ t('home.noBirthProfile') }}</strong>
+              <span>录入生辰后，命盘四柱、五行旺衰、大运流年将一一呈现</span>
+            </div>
+            <button class="secondary-button" type="button" @click="openBirthModal">
+              <CalendarDays :size="18" aria-hidden="true" />
+              {{ t('home.openBirthProfile') }}
+            </button>
           </div>
         </section>
 

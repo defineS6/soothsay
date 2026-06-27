@@ -6,7 +6,8 @@
   "type": "module",
   "packageManager": "pnpm@10.3.0",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "concurrently -k -n server,client -c blue,green \"pnpm dev:server\" \"pnpm dev:client\"",
+    "dev:client": "vite --host 0.0.0.0",
     "dev:server": "tsx watch server/src/index.ts",
     "build": "vue-tsc --noEmit && vite build && tsc -p server/tsconfig.json",
     "start": "node dist-server/index.js",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/pg": "^8.20.0",
+    "concurrently": "^9.2.3",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
