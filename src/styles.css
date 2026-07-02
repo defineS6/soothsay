@@ -20,6 +20,27 @@
   --lh-body: 1.5;
   --ls-display: -0.02em;
   --ls-heading: -0.01em;
+  /* 字重 Token：display 500 / body 400（对齐 DESIGN.md） */
+  --weight-display: 500;
+  --weight-body: 400;
+  /* 间距阶梯（基数 4px，对齐 DESIGN.md；新代码优先取用，存量微调值渐进收口） */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+  --space-5xl: 96px;
+  /* 动效时长 Token：micro 交互态 / small 普通切换 / medium 大面积过渡 */
+  --dur-micro: 200ms;
+  --dur-small: 300ms;
+  --dur-medium: 500ms;
+  /* 布局容器 Token：容器上限 / 长文段宽 / 栅格列间距 */
+  --container-max: 1280px;
+  --paragraph-max: 680px;
+  --grid-gutter: 24px;
   /* 圆角层级 sm / md / lg / pill */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -185,11 +206,10 @@ button:disabled {
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
-  transition-timing-function: var(--ease);
+    background-color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
 }
 
 .brand-button {
@@ -380,8 +400,11 @@ button:disabled {
 
 .modal-heading h2 {
   color: var(--ink);
-  font-size: 18px;
-  font-weight: 700;
+  /* 标题回归衬线主导：过渡衬线 + 展示字重 500，替代原 sans 粗体 */
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: var(--weight-display);
+  letter-spacing: var(--ls-heading);
 }
 
 .modal-heading p {
@@ -547,9 +570,9 @@ button:disabled {
   background: var(--surface);
   cursor: pointer;
   transition:
-    border-color 180ms var(--ease),
-    background-color 180ms var(--ease),
-    box-shadow 180ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
 }
 
 .birth-profile-item:hover,
@@ -1270,8 +1293,8 @@ button:disabled {
   backdrop-filter: blur(12px) saturate(1.08);
   -webkit-backdrop-filter: blur(12px) saturate(1.08);
   transition:
-    border-color 200ms var(--ease),
-    background-color 200ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 .mobile-menu-item:hover {
@@ -1334,8 +1357,11 @@ button:disabled {
 .rail-heading span,
 .panel-title h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 500;
+  /* 面板标题衬线化，与 chart-section-title 的编辑感统一 */
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--weight-display);
+  letter-spacing: var(--ls-heading);
 }
 
 .master-card {
@@ -1354,9 +1380,9 @@ button:disabled {
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.5);
   transition:
-    background-color 200ms var(--ease),
-    border-color 200ms var(--ease),
-    box-shadow 200ms var(--ease);
+    background-color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
 }
 
 .master-card:hover,
@@ -1411,7 +1437,7 @@ button:disabled {
 .admin-grid {
   display: grid;
   grid-template-columns: minmax(300px, 0.86fr) minmax(380px, 1.14fr);
-  gap: 24px;
+  gap: var(--grid-gutter);
   align-items: start;
 }
 
@@ -1434,7 +1460,7 @@ button:disabled {
   box-shadow:
     rgba(20, 20, 19, 0.08) 0 8px 32px,
     inset 0 1px 0 rgba(255, 253, 248, 0.6);
-  animation: fade-in 500ms var(--ease) both;
+  animation: fade-in var(--dur-medium) var(--ease) both;
 }
 
 .chart-panel,
@@ -1548,9 +1574,9 @@ textarea {
   background: var(--surface);
   outline: none;
   transition:
-    border-color 180ms var(--ease),
-    box-shadow 180ms var(--ease),
-    background-color 180ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 textarea {
@@ -1639,8 +1665,8 @@ button:focus-visible,
   backdrop-filter: blur(10px) saturate(1.08);
   -webkit-backdrop-filter: blur(10px) saturate(1.08);
   transition:
-    border-color 200ms var(--ease),
-    background-color 200ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 /* 日柱为命主之柱，用明度对比与顶部墨色标记线点明重点（不引入彩色） */
@@ -1786,7 +1812,7 @@ button:focus-visible,
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
   font-size: 13px;
-  transition: background-color 200ms var(--ease);
+  transition: background-color var(--dur-micro) var(--ease);
 }
 
 .strength-row:hover {
@@ -1854,7 +1880,7 @@ button:focus-visible,
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.5;
-  transition: background-color 200ms var(--ease);
+  transition: background-color var(--dur-micro) var(--ease);
 }
 
 .relation-list > span:hover {
@@ -1891,8 +1917,8 @@ button:focus-visible,
   border-radius: var(--radius-md);
   background: var(--bg-soft);
   transition:
-    border-color 200ms var(--ease),
-    background-color 200ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 /* 当前大运：左侧墨色竖条标记 + 更亮底面 */
@@ -2029,9 +2055,9 @@ button:focus-visible,
   -webkit-backdrop-filter: blur(12px) saturate(1.08);
   box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.4);
   transition:
-    border-color 180ms var(--ease),
-    box-shadow 180ms var(--ease),
-    background-color 180ms var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 .follow-row:focus-within {
@@ -2066,8 +2092,8 @@ button:focus-visible,
   background: var(--ink);
   transition:
     transform 160ms var(--ease),
-    background-color 180ms var(--ease),
-    border-color 180ms var(--ease);
+    background-color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
 }
 
 .composer-send:hover:not(:disabled) {
@@ -2169,8 +2195,9 @@ button:focus-visible,
 
 .memory-heading h3 {
   color: var(--ink);
-  font-size: 15px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: var(--weight-display);
   line-height: 1.35;
 }
 
@@ -2233,7 +2260,7 @@ button:focus-visible,
 }
 
 .answer-box p {
-  max-width: 680px;
+  max-width: var(--paragraph-max);
   margin: 0 0 12px;
   color: var(--ink-soft);
   line-height: 1.78;
@@ -2250,7 +2277,7 @@ button:focus-visible,
 }
 
 .markdown-body {
-  max-width: 680px;
+  max-width: var(--paragraph-max);
   color: var(--ink-soft);
   font-size: 16px;
   line-height: 1.78;
@@ -2301,7 +2328,6 @@ button:focus-visible,
 }
 
 .markdown-body p {
-  max-width: 720px;
   margin: 0 0 12px;
   white-space: pre-wrap;
 }
@@ -2542,6 +2568,7 @@ button:focus-visible,
   }
 }
 
+/* 生成高亮：中性墨色呼吸反馈（原绿色违反"无强调色"约束，收口为暖单色） */
 @keyframes generated-glow {
   0%,
   100% {
@@ -2549,9 +2576,9 @@ button:focus-visible,
   }
 
   28% {
-    border-color: rgba(55, 119, 88, 0.45);
-    background-color: rgba(232, 244, 236, 0.72);
-    box-shadow: 0 0 0 3px rgba(55, 119, 88, 0.12);
+    border-color: var(--ink-soft);
+    background-color: rgba(232, 230, 220, 0.72);
+    box-shadow: var(--focus-ring);
   }
 }
 
@@ -2563,8 +2590,8 @@ button:focus-visible,
   }
 
   28% {
-    border-color: rgba(55, 119, 88, 0.56);
-    box-shadow: 0 0 0 3px rgba(55, 119, 88, 0.12);
+    border-color: var(--ink-soft);
+    box-shadow: var(--focus-ring);
   }
 }
 
