@@ -3210,3 +3210,180 @@ button:focus-visible,
     width: 50px;
   }
 }
+
+/* ============================================================
+   纸墨朱砂主题（可切换第二皮肤）
+   通过 <html data-theme="ink"> 激活；默认主题 CSS 完全不受影响。
+   设计要义：实纸取代毛玻璃，朱砂红仅作四处批注，其余回归墨与留白。
+   ============================================================ */
+[data-theme="ink"] {
+  color-scheme: light;
+  /* 纸墨色板：暖米宣纸底 + 松烟墨字；muted 加深以满足 AA 对比 */
+  --bg: #f2ece0;
+  --bg-soft: #e6ddcb;
+  --surface: #faf5ea;
+  --surface-raised: #f2ebdc;
+  --ink: #26201a;
+  --ink-soft: #4a4036;
+  --muted: #6d5f4b;
+  --line: rgba(122, 106, 82, 0.34);
+  --line-soft: rgba(122, 106, 82, 0.2);
+  /* 朱砂：全站唯一语义色，仅作批注（主按钮 / 日主柱 / 当前大运 / 光标） */
+  --cinnabar: #a6402f;
+  --cinnabar-strong: #8f3728;
+  /* 焦点环改朱砂低饱和，与批注语义呼应 */
+  --focus-ring: 0 0 0 3px rgba(166, 64, 47, 0.22);
+  --shadow-soft: rgba(58, 44, 28, 0.14) 0 4px 16px 0;
+  --shadow-line: rgba(122, 106, 82, 0.55) 0 0 0 1px;
+}
+
+/* 去场景大图与 wash，露出纯纸底（毛玻璃透景 → 摊开的纸） */
+[data-theme="ink"] .scene-layer::before {
+  background-image: none;
+  background: var(--bg);
+  filter: none;
+  opacity: 1;
+}
+
+[data-theme="ink"] .scene-layer::after {
+  background: none;
+}
+
+/* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter */
+[data-theme="ink"] .topbar,
+[data-theme="ink"] .panel,
+[data-theme="ink"] .master-card,
+[data-theme="ink"] .answer-box,
+[data-theme="ink"] .pillar-cell,
+[data-theme="ink"] .chart-master-strip,
+[data-theme="ink"] .relation-list > span,
+[data-theme="ink"] .follow-row,
+[data-theme="ink"] .chart-empty-icon,
+[data-theme="ink"] .mobile-hero-card,
+[data-theme="ink"] .mobile-card,
+[data-theme="ink"] .mobile-master-card,
+[data-theme="ink"] .mobile-pillar-strip,
+[data-theme="ink"] .mobile-highlight-row span,
+[data-theme="ink"] .mobile-follow-card,
+[data-theme="ink"] .mobile-empty-card,
+[data-theme="ink"] .mobile-menu-item,
+[data-theme="ink"] .mobile-bottom-tabs {
+  background: var(--surface);
+  border-color: var(--line);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 主面板级用柔纸阴影托起 */
+[data-theme="ink"] .topbar,
+[data-theme="ink"] .panel,
+[data-theme="ink"] .mobile-bottom-tabs {
+  box-shadow: var(--shadow-soft);
+}
+
+/* 次级卡片用细线阴影，如一页纸浮起 */
+[data-theme="ink"] .master-card,
+[data-theme="ink"] .answer-box,
+[data-theme="ink"] .mobile-hero-card,
+[data-theme="ink"] .mobile-card {
+  box-shadow: var(--shadow-line);
+}
+
+/* 小构件仅以线分隔，不投影 */
+[data-theme="ink"] .pillar-cell,
+[data-theme="ink"] .chart-master-strip,
+[data-theme="ink"] .relation-list > span,
+[data-theme="ink"] .chart-empty-icon,
+[data-theme="ink"] .follow-row,
+[data-theme="ink"] .mobile-master-card,
+[data-theme="ink"] .mobile-pillar-strip,
+[data-theme="ink"] .mobile-highlight-row span,
+[data-theme="ink"] .mobile-follow-card,
+[data-theme="ink"] .mobile-empty-card,
+[data-theme="ink"] .mobile-menu-item {
+  box-shadow: none;
+}
+
+/* 交互态：以纸色明度变化替代玻璃透明度变化 */
+[data-theme="ink"] .master-card:hover,
+[data-theme="ink"] .master-card.active {
+  border-color: var(--ink-soft);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-line);
+}
+
+[data-theme="ink"] .mobile-menu-item:hover {
+  border-color: var(--line);
+  background: var(--surface-raised);
+}
+
+[data-theme="ink"] .relation-list > span:hover,
+[data-theme="ink"] .strength-row:hover {
+  background: var(--surface-raised);
+}
+
+[data-theme="ink"] .follow-row:focus-within {
+  border-color: var(--ink-soft);
+  background: var(--surface);
+  box-shadow: var(--focus-ring);
+}
+
+/* 头像描边、chip、记忆区、弹窗标题、底栏激活项等零散玻璃残留一并归纸 */
+[data-theme="ink"] .chart-master-avatar {
+  border-color: var(--line);
+}
+
+[data-theme="ink"] .chart-master-meta span {
+  background: var(--surface-raised);
+}
+
+[data-theme="ink"] .master-memory {
+  background: var(--surface);
+}
+
+[data-theme="ink"] .modal-heading {
+  background: var(--surface-raised);
+}
+
+[data-theme="ink"] .mobile-bottom-tabs button.active {
+  color: var(--ink);
+  background: var(--surface-raised);
+}
+
+[data-theme="ink"] .loading-mask {
+  background: rgba(242, 236, 224, 0.72);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* —— 朱砂四批注 —— */
+/* 一：主行动按钮为朱砂印章 */
+[data-theme="ink"] .primary-button {
+  color: var(--surface);
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  box-shadow: rgba(166, 64, 47, 0.24) 0 2px 8px;
+}
+
+[data-theme="ink"] .primary-button:hover {
+  background: var(--cinnabar-strong);
+  border-color: var(--cinnabar-strong);
+}
+
+/* 二：日主之柱以朱砂圈点（顶部朱线，替代原墨线） */
+[data-theme="ink"] .pillar-cell.pillar-day {
+  border-color: var(--cinnabar);
+  background: var(--surface-raised);
+  box-shadow: inset 0 2px 0 var(--cinnabar);
+}
+
+/* 三：当前大运以朱砂竖批 */
+[data-theme="ink"] .luck-cycle[open] {
+  border-color: var(--cinnabar);
+  box-shadow: inset 3px 0 0 var(--cinnabar);
+}
+
+/* 四：流式解读光标为朱砂笔锋 */
+[data-theme="ink"] .caret {
+  background: var(--cinnabar);
+}

@@ -6,6 +6,8 @@ export const localeStorageKey = 'soothsay-locale';
 const messages = {
   'zh-CN': {
     'language.label': '切换到英文',
+    'theme.toInk': '切换到纸墨主题',
+    'theme.toDefault': '切换到默认主题',
     'nav.main': '主导航',
     'nav.chooseMaster': '选大师',
     'nav.profile': '个人档案',
@@ -52,6 +54,8 @@ const messages = {
   },
   'en-US': {
     'language.label': '切换到中文',
+    'theme.toInk': 'Switch to ink theme',
+    'theme.toDefault': 'Switch to default theme',
     'nav.main': 'Main navigation',
     'nav.chooseMaster': 'Choose guide',
     'nav.profile': 'Profile',

@@ -11,6 +11,7 @@ import {
   Languages,
   Lock,
   MessageCircle,
+  Palette,
   RefreshCw,
   Save,
   Send,
@@ -96,6 +97,25 @@ function toggleLocale() {
   locale.value = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN';
   window.localStorage.setItem(localeStorageKey, locale.value);
   document.documentElement.lang = locale.value;
+}
+
+type UiTheme = 'default' | 'ink';
+const themeStorageKey = 'soothsay-theme';
+const uiTheme = ref<UiTheme>('default');
+
+// 应用外观主题：ink 挂 data-theme 属性驱动 CSS 覆写，default 移除；同步持久化
+function applyTheme(next: UiTheme) {
+  uiTheme.value = next;
+  if (next === 'ink') {
+    document.documentElement.setAttribute('data-theme', 'ink');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  window.localStorage.setItem(themeStorageKey, next);
+}
+
+function toggleTheme() {
+  applyTheme(uiTheme.value === 'ink' ? 'default' : 'ink');
 }
 
 const personas = ref<PersonaSkin[]>([]);
@@ -1448,6 +1468,9 @@ async function removePersona(persona: PersonaSkin) {
 
 onMounted(async () => {
   locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey) ?? navigator.language);
+  if (window.localStorage.getItem(themeStorageKey) === 'ink') {
+    applyTheme('ink');
+  }
   loadRememberedAdminSession();
   document.documentElement.lang = locale.value;
   startOpeningAnimation();
@@ -1546,6 +1569,9 @@ onMounted(async () => {
         <button class="icon-button language-toggle" type="button" :title="t('language.label')" :aria-label="t('language.label')" @click="toggleLocale">
           <Languages :size="20" aria-hidden="true" />
           <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
+        </button>
+        <button class="icon-button theme-toggle" type="button" :title="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" :aria-label="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" @click="toggleTheme">
+          <Palette :size="20" aria-hidden="true" />
         </button>
         <button class="icon-button" type="button" :title="t('nav.credentials')" @click="openSettings">
           <KeyRound :size="20" aria-hidden="true" />
