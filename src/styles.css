@@ -3228,9 +3228,22 @@ button:focus-visible,
   --muted: #6d5f4b;
   --line: rgba(122, 106, 82, 0.34);
   --line-soft: rgba(122, 106, 82, 0.2);
+  /* —— 墨分五色：焦 / 浓 / 重 / 淡，国画墨阶，供不同文字层级借用 —— */
+  /* 焦墨：最浓近纯黑，用于八字日主干与核心吉数，墨势最重 */
+  --ink-jiao: #1a1510;
+  /* 浓墨：天干地支主字形，承袭原 ink，主体用墨 */
+  --ink-nong: #26201a;
+  /* 重墨：副信息与小标题，介于浓淡之间 */
+  --ink-zhong: #4a4036;
+  /* 淡墨：批注与说明文字，轻描淡写 */
+  --ink-dan: #6d5f4b;
+  /* 墨晕：大字落纸的极淡外晕，模拟水墨入纸渗透 */
+  --ink-bleed: rgba(38, 32, 26, 0.14);
   /* 朱砂：全站唯一语义色，仅作批注（主按钮 / 日主柱 / 当前大运 / 光标） */
   --cinnabar: #a6402f;
   --cinnabar-strong: #8f3728;
+  /* 朱砂印泥外晕：印章落纸时印泥溢出的暖红光晕 */
+  --cinnabar-bleed: rgba(166, 64, 47, 0.32);
   /* 焦点环改朱砂低饱和，与批注语义呼应 */
   --focus-ring: 0 0 0 3px rgba(166, 64, 47, 0.22);
   --shadow-soft: rgba(58, 44, 28, 0.14) 0 4px 16px 0;
@@ -3245,8 +3258,18 @@ button:focus-visible,
   opacity: 1;
 }
 
+/* 宣纸纤维肌理：内联 SVG turbulence 扰动 + 四角 vignette，死纸化为活纸 */
 [data-theme="ink"] .scene-layer::after {
-  background: none;
+  background:
+    /* 纸张受光不均：四角微暗，中央透亮，模拟自然光下的宣纸 */
+    radial-gradient(120% 90% at 50% 42%, transparent 0%, transparent 56%, rgba(58, 44, 28, 0.07) 100%),
+    /* 宣纸长纤维絮：低频湍流，极淡墨点散布 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.08' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.13 0 0 0 0 0.1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.5'/%3E%3C/svg%3E"),
+    /* 细微高频颗粒：纸面短纤维毛刺 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.28 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
 }
 
 /* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter */
@@ -3356,34 +3379,207 @@ button:focus-visible,
   -webkit-backdrop-filter: blur(2px);
 }
 
-/* —— 朱砂四批注 —— */
-/* 一：主行动按钮为朱砂印章 */
+/* —— 朱砂印章体系：批注 + 印章语汇 —— */
+/* 一：主行动按钮为朱砂印章 —— 直角化、印泥外晕、按压顿挫 */
 [data-theme="ink"] .primary-button {
+  position: relative;
   color: var(--surface);
   background: var(--cinnabar);
   border-color: var(--cinnabar);
-  box-shadow: rgba(166, 64, 47, 0.24) 0 2px 8px;
+  /* 印章直角，仅保留极小圆角避免视觉生硬 */
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  /* 印泥外晕：墨色细线勾边 + 朱砂暖红向外晕开，如印泥按纸 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 245, 235, 0.18),
+    0 0 0 2px rgba(166, 64, 47, 0.18),
+    rgba(166, 64, 47, 0.32) 0 3px 10px;
+  transition:
+    transform 120ms var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
 }
 
 [data-theme="ink"] .primary-button:hover {
   background: var(--cinnabar-strong);
   border-color: var(--cinnabar-strong);
+  /* 悬停时印泥外晕加深外扩，如重按印章 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 245, 235, 0.26),
+    0 0 0 3px rgba(166, 64, 47, 0.26),
+    rgba(166, 64, 47, 0.4) 0 5px 14px;
 }
 
-/* 二：日主之柱以朱砂圈点（顶部朱线，替代原墨线） */
+[data-theme="ink"] .primary-button:active {
+  /* 按压落印的顿挫感 */
+  transform: translateY(1px);
+}
+
+/* 印章底面斑驳：极淡的不均匀印泥纹理，避免纯色片状感 */
+[data-theme="ink"] .primary-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.9 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.35'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 二：日主之柱以朱砂圈点 —— 顶朱线为批注横眉，四角朱印题款 */
 [data-theme="ink"] .pillar-cell.pillar-day {
+  position: relative;
   border-color: var(--cinnabar);
   background: var(--surface-raised);
   box-shadow: inset 0 2px 0 var(--cinnabar);
 }
 
-/* 三：当前大运以朱砂竖批 */
+/* 日柱右上朱印：极小红方点，如题款落章 */
+[data-theme="ink"] .pillar-cell.pillar-day::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--cinnabar);
+  border-radius: 2px;
+  background: var(--cinnabar-bleed);
+  box-shadow: inset 0 0 0 1px rgba(255, 245, 235, 0.3);
+}
+
+/* 三：当前大运以朱砂竖批 —— 竖线左侧批点，展开态印泥晕染 */
 [data-theme="ink"] .luck-cycle[open] {
   border-color: var(--cinnabar);
-  box-shadow: inset 3px 0 0 var(--cinnabar);
+  box-shadow:
+    inset 3px 0 0 var(--cinnabar),
+    0 0 0 1px rgba(166, 64, 47, 0.12);
 }
 
 /* 四：流式解读光标为朱砂笔锋 */
 [data-theme="ink"] .caret {
   background: var(--cinnabar);
+}
+
+/* 五：品牌区闲章 —— 顶栏 Soothsay 落一枚朱砂印记点题 */
+[data-theme="ink"] .brand-button span {
+  position: relative;
+}
+
+[data-theme="ink"] .brand-button::after {
+  content: "算";
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%) scale(0.62);
+  transform-origin: center;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--surface);
+  background: var(--cinnabar);
+  border: 1px solid rgba(143, 55, 40, 0.6);
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(166, 64, 47, 0.2);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 桌面端宽顶栏时露出闲章；窄屏藏名并存，避开拥挤 */
+@media (min-width: 720px) {
+  [data-theme="ink"] .brand-button::after {
+    opacity: 1;
+  }
+}
+
+/* 移动端窄顶栏：闲章改挂品牌名后方，避免位移 */
+@media (max-width: 720px) {
+  [data-theme="ink"] .brand-button small {
+    position: relative;
+  }
+
+  [data-theme="ink"] .brand-button::after {
+    right: -28px;
+    opacity: 1;
+  }
+}
+
+/* 六：五行旺衰进度条 —— 朱砂批点水位，替代中性墨条 */
+[data-theme="ink"] .strength-bar {
+  background: rgba(58, 44, 28, 0.1);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+
+[data-theme="ink"] .strength-bar i {
+  background: linear-gradient(90deg, var(--cinnabar-strong), var(--cinnabar));
+}
+
+/* 七：分段切换激活位 —— 朱砂精细批注，替代通用阴影 */
+[data-theme="ink"] .segmented button.active {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: inset 0 -2px 0 var(--cinnabar);
+}
+
+/* 八：当前移动端 Tab 激活 —— 朱砂底批，替代中性底面 */
+[data-theme="ink"] .mobile-bottom-tabs button.active {
+  color: var(--ink);
+  background: var(--surface-raised);
+  box-shadow: inset 0 -2px 0 var(--cinnabar);
+}
+
+/* —— 墨分五色：国画墨阶应用于文字层级（焦浓重淡 + 墨晕）—— */
+
+/* 浓墨：四柱干支大字 —— 主体用墨，加极淡墨晕模拟水墨入纸渗透 */
+[data-theme="ink"] .pillar-cell strong {
+  color: var(--ink-nong);
+  text-shadow: 0 0 1px var(--ink-bleed);
+}
+
+/* 焦墨：日柱干支大字 —— 全盘最浓墨势，墨晕加深，如焦墨重笔落纸 */
+[data-theme="ink"] .pillar-cell.pillar-day strong {
+  color: var(--ink-jiao);
+  text-shadow: 0 0 2px var(--ink-bleed);
+}
+
+/* 重墨：柱名标签（年/月/日/时）—— 副信息层级，从淡墨提浓以分层次 */
+[data-theme="ink"] .pillar-cell span {
+  color: var(--ink-zhong);
+}
+
+/* 淡墨：藏干/空亡/神煞等批注 —— 轻描淡写，保持最弱墨势 */
+[data-theme="ink"] .pillar-cell small {
+  color: var(--ink-dan);
+}
+
+/* 焦墨：各区块计数（关系数/大运数）—— 点睛之笔，提浓区别于标题 */
+[data-theme="ink"] .chart-section-title strong {
+  color: var(--ink-jiao);
+}
+
+/* —— 移动端墨阶 —— */
+/* 浓墨：移动端四柱干支大字 + 墨晕 */
+[data-theme="ink"] .mobile-pillar-strip strong {
+  color: var(--ink-nong);
+  text-shadow: 0 0 1px var(--ink-bleed);
+}
+
+/* 焦墨：移动端日柱（第三柱）干支 —— 最浓墨势 + 加深墨晕 */
+[data-theme="ink"] .mobile-pillar-strip span:nth-child(3) strong {
+  color: var(--ink-jiao);
+  text-shadow: 0 0 2px var(--ink-bleed);
+}
+
+/* 重墨：移动端日柱标签与五行标注 —— 提浓以区别于其他柱的淡墨 */
+[data-theme="ink"] .mobile-pillar-strip span:nth-child(3) small,
+[data-theme="ink"] .mobile-pillar-strip span:nth-child(3) em {
+  color: var(--ink-zhong);
 }
