@@ -3583,3 +3583,159 @@ button:focus-visible,
 [data-theme="ink"] .mobile-pillar-strip span:nth-child(3) em {
   color: var(--ink-zhong);
 }
+
+/* ============================================================
+   方向 D：留白与题款版式（计白当黑）
+   ============================================================ */
+
+/* 1. 区块之间用留白带替代纯边框分隔，边框极度弱化 */
+[data-theme="ink"] .chart-section {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 32px;
+  margin-top: 24px;
+}
+
+/* 2. 主面板预留题款区，竖排小字计白当黑 */
+[data-theme="ink"] .panel {
+  position: relative;
+}
+[data-theme="ink"] .panel::before {
+  content: "子平八字";
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-family: serif;
+  font-size: 15px;
+  letter-spacing: 6px;
+  color: var(--ink-jiao);
+  /* 题款须可见：原文 0.05 在米色纸底上近乎隐身，提至 0.12 方显计白当黑 */
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 3. 大运列表区做成手卷横向展开视觉暗示 */
+[data-theme="ink"] .luck-list {
+  position: relative;
+  padding-left: 20px;
+}
+[data-theme="ink"] .luck-list::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--line-soft), transparent);
+}
+[data-theme="ink"] .luck-list::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+/* 4. 四柱之间增大留白，用空间分隔 */
+[data-theme="ink"] .pillar-grid {
+  gap: 12px;
+  background: transparent;
+  border: none;
+}
+[data-theme="ink"] .pillar-cell {
+  border-radius: 4px;
+}
+
+/* ============================================================
+   方向 E：团扇与卷云光影（祥云背景）
+   ============================================================ */
+
+/* 在 scene-layer 的 before 层叠加极淡祥云纹，不影响 after 层的宣纸肌理 */
+[data-theme="ink"] .scene-layer::before {
+  background-image: 
+    radial-gradient(circle at 85% 15%, rgba(122, 106, 82, 0.06) 0%, transparent 40%),
+    repeating-radial-gradient(circle at 90% 10%, transparent 0, transparent 10px, rgba(122, 106, 82, 0.03) 10px, rgba(122, 106, 82, 0.03) 15px),
+    radial-gradient(circle at 10% 85%, rgba(122, 106, 82, 0.04) 0%, transparent 50%);
+  background-color: var(--bg);
+}
+
+/* ============================================================
+   方向 F：自由发挥 - 纸墨朱砂细节深化
+   ============================================================ */
+
+/* 1. 选区高亮改朱砂晕染 */
+[data-theme="ink"] ::selection {
+  background: var(--cinnabar-bleed);
+  color: var(--ink-jiao);
+  text-shadow: none;
+}
+[data-theme="ink"] ::-moz-selection {
+  background: var(--cinnabar-bleed);
+  color: var(--ink-jiao);
+  text-shadow: none;
+}
+
+/* 2. 滚动条样式纸墨化 */
+[data-theme="ink"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+[data-theme="ink"] ::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-left: 1px solid var(--line-soft);
+}
+[data-theme="ink"] ::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+  border: 2px solid var(--bg);
+}
+[data-theme="ink"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-soft);
+}
+
+/* 3. 表单控件与输入框的纸墨质感 */
+[data-theme="ink"] input,
+[data-theme="ink"] textarea,
+[data-theme="ink"] select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  /* 收敛过渡：仅过渡边框/背景，避免 all 引发意外动效与性能开销 */
+  transition: border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+}
+[data-theme="ink"] input:focus,
+[data-theme="ink"] textarea:focus,
+[data-theme="ink"] select:focus {
+  outline: none;
+  border-color: var(--cinnabar);
+  box-shadow: 0 1px 0 var(--cinnabar), var(--focus-ring);
+  background: var(--surface-raised);
+}
+[data-theme="ink"] input::placeholder,
+[data-theme="ink"] textarea::placeholder {
+  color: var(--ink-dan);
+}
+
+/* 4. 弹窗/模态框纸墨化加重边缘 */
+[data-theme="ink"] .modal-content,
+[data-theme="ink"] .dialog-content,
+[data-theme="ink"] .modal {
+  box-shadow: 
+    0 16px 40px -12px rgba(38, 32, 26, 0.28),
+    0 0 0 1px var(--line) inset;
+}
+
+/* 5. 分割线 hr 纸墨化 */
+[data-theme="ink"] hr {
+  border-color: var(--line-soft);
+}
+
