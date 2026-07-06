@@ -3223,21 +3223,27 @@ button:focus-visible,
   --bg-soft: #e6ddcb;
   --surface: #faf5ea;
   --surface-raised: #f2ebdc;
+  /* 纸分三阶：页底(--bg)最深、面板纸居中、卡片/按钮/弹窗(--surface)最亮，
+     找回玻璃主题靠透明度建立的纵深 */
+  --paper-panel: #f5efe1;
+  /* 危险色让位朱砂：转深绛拉开色相，删除类操作不再与批注红混淆 */
+  --danger: #7e2f3f;
   --ink: #26201a;
   --ink-soft: #4a4036;
   --muted: #6d5f4b;
   /* 边线实色化：半透明线叠在不同纸底上会颜色漂移，取合成后的中间值 */
   --line: #ccc1ae;
   --line-soft: #ddd5c6;
-  /* —— 墨分五色：焦 / 浓 / 重 / 淡，国画墨阶，供不同文字层级借用 —— */
+  /* —— 墨分五色：焦 / 浓 / 重 / 淡，国画墨阶，供不同文字层级借用；
+     浓/重/淡与既有 token 同源引用，避免同值重复定义、改一漏一 —— */
   /* 焦墨：最浓近纯黑，用于八字日主干与核心吉数，墨势最重 */
   --ink-jiao: #1a1510;
-  /* 浓墨：天干地支主字形，承袭原 ink，主体用墨 */
-  --ink-nong: #26201a;
+  /* 浓墨：天干地支主字形，主体用墨 */
+  --ink-nong: var(--ink);
   /* 重墨：副信息与小标题，介于浓淡之间 */
-  --ink-zhong: #4a4036;
+  --ink-zhong: var(--ink-soft);
   /* 淡墨：批注与说明文字，轻描淡写 */
-  --ink-dan: #6d5f4b;
+  --ink-dan: var(--muted);
   /* 朱砂：全站唯一语义色，仅作批注——主按钮与发送、日主柱、当前大运、光标，
      以及 segmented/tab/focus 的当前位批点；永远小面积、永远有含义 */
   --cinnabar: #a6402f;
@@ -3272,9 +3278,19 @@ button:focus-visible,
   mix-blend-mode: multiply;
 }
 
-/* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter */
+/* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter。
+   纸分两层铺陈：面板纸居中、卡片纸更亮，卡片得以从面板上「浮起」 */
 [data-theme="ink"] .topbar,
 [data-theme="ink"] .panel,
+[data-theme="ink"] .mobile-hero-card,
+[data-theme="ink"] .mobile-card,
+[data-theme="ink"] .mobile-bottom-tabs {
+  background: var(--paper-panel);
+  border-color: var(--line);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 [data-theme="ink"] .master-card,
 [data-theme="ink"] .answer-box,
 [data-theme="ink"] .pillar-cell,
@@ -3282,15 +3298,12 @@ button:focus-visible,
 [data-theme="ink"] .relation-list > span,
 [data-theme="ink"] .follow-row,
 [data-theme="ink"] .chart-empty-icon,
-[data-theme="ink"] .mobile-hero-card,
-[data-theme="ink"] .mobile-card,
 [data-theme="ink"] .mobile-master-card,
 [data-theme="ink"] .mobile-pillar-strip,
 [data-theme="ink"] .mobile-highlight-row span,
 [data-theme="ink"] .mobile-follow-card,
 [data-theme="ink"] .mobile-empty-card,
-[data-theme="ink"] .mobile-menu-item,
-[data-theme="ink"] .mobile-bottom-tabs {
+[data-theme="ink"] .mobile-menu-item {
   background: var(--surface);
   border-color: var(--line);
   backdrop-filter: none;
@@ -3412,11 +3425,11 @@ button:focus-visible,
   transform: translateY(1px);
 }
 
-/* 二：日主之柱以朱砂圈点 —— 顶朱线为批注横眉，四角朱印题款 */
+/* 二：日主之柱以朱砂圈点 —— 顶朱线 + 右上朱印两笔即止，边框底色不再加码 */
 [data-theme="ink"] .pillar-cell.pillar-day {
   position: relative;
-  border-color: var(--cinnabar);
-  background: var(--surface-raised);
+  border-color: var(--line);
+  background: var(--surface);
   box-shadow: inset 0 2px 0 var(--cinnabar);
 }
 
@@ -3621,5 +3634,35 @@ button:focus-visible,
 /* 5. 分割线 hr 纸墨化 */
 [data-theme="ink"] hr {
   border-color: var(--line-soft);
+}
+
+/* 6. 危险软化按钮的旧红硬编码同步转绛 */
+[data-theme="ink"] .secondary-button.danger-soft {
+  border-color: rgba(126, 47, 63, 0.42);
+}
+
+[data-theme="ink"] .secondary-button.danger-soft:hover {
+  border-color: var(--danger);
+  background: rgba(126, 47, 63, 0.08);
+}
+
+/* 7. 焦点色统一归朱砂：按钮外环与输入框焦点环同为「当前位批点」 */
+[data-theme="ink"] button:focus-visible,
+[data-theme="ink"] .master-card:focus-visible {
+  outline: 2px solid rgba(166, 64, 47, 0.55);
+}
+
+/* 8. 按钮与输入控件圆角统一收至 4px：与朱砂印章同阶，避免弹窗页脚
+   「圆角取消 + 直角确定」并排不齐；纸墨主题整体取硬朗 */
+[data-theme="ink"] .brand-button,
+[data-theme="ink"] .text-trigger,
+[data-theme="ink"] .birth-trigger,
+[data-theme="ink"] .icon-button,
+[data-theme="ink"] .secondary-button,
+[data-theme="ink"] .ghost-button,
+[data-theme="ink"] input,
+[data-theme="ink"] select,
+[data-theme="ink"] textarea {
+  border-radius: var(--radius-sm);
 }
 
