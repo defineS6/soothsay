@@ -3214,46 +3214,43 @@ button:focus-visible,
 /* ============================================================
    纸墨朱砂主题（可切换第二皮肤）
    通过 <html data-theme="ink"> 激活；默认主题 CSS 完全不受影响。
-   设计要义：实纸取代毛玻璃，朱砂红仅作四处批注，其余回归墨与留白。
+   设计要义：实纸取代毛玻璃，朱砂红仅作批注，其余回归墨与留白。
+   气质：摊开的暖宣纸 + 题款版式 + 印章语汇，安静、克制、有编辑感。
    ============================================================ */
 [data-theme="ink"] {
   color-scheme: light;
-  /* 纸墨色板：暖米宣纸底 + 松烟墨字；muted 加深以满足 AA 对比 */
-  --bg: #f2ece0;
-  --bg-soft: #e6ddcb;
-  --surface: #faf5ea;
-  --surface-raised: #f2ebdc;
-  /* 纸分三阶：页底(--bg)最深、面板纸居中、卡片/按钮/弹窗(--surface)最亮，
-     找回玻璃主题靠透明度建立的纵深 */
-  --paper-panel: #f5efe1;
+  /* 纸墨色板：暖米黄宣纸底 + 松烟墨字；muted 加深以满足 AA 对比 */
+  --bg: #efe7d6;
+  --bg-soft: #e4d9c4;
+  --surface: #fbf6eb;
+  --surface-raised: #f3ead9;
+  /* 纸分三阶：页底(--bg)最深、面板纸居中、卡片/按钮/弹窗(--surface)最亮 */
+  --paper-panel: #f6efe0;
   /* 危险色让位朱砂：转深绛拉开色相，删除类操作不再与批注红混淆 */
   --danger: #7e2f3f;
-  --ink: #26201a;
-  --ink-soft: #4a4036;
-  --muted: #6d5f4b;
+  --ink: #241e18;
+  --ink-soft: #463c32;
+  --muted: #6a5c48;
   /* 边线实色化：半透明线叠在不同纸底上会颜色漂移，取合成后的中间值 */
-  --line: #ccc1ae;
-  --line-soft: #ddd5c6;
-  /* —— 墨分五色：焦 / 浓 / 重 / 淡，国画墨阶，供不同文字层级借用；
-     浓/重/淡与既有 token 同源引用，避免同值重复定义、改一漏一 —— */
-  /* 焦墨：最浓近纯黑，用于八字日主干与核心吉数，墨势最重 */
-  --ink-jiao: #1a1510;
-  /* 浓墨：天干地支主字形，主体用墨 */
+  --line: #c9bda8;
+  --line-soft: #dbd2c0;
+  /* —— 墨分五色：焦 / 浓 / 重 / 淡 —— */
+  --ink-jiao: #17120e;
   --ink-nong: var(--ink);
-  /* 重墨：副信息与小标题，介于浓淡之间 */
   --ink-zhong: var(--ink-soft);
-  /* 淡墨：批注与说明文字，轻描淡写 */
   --ink-dan: var(--muted);
-  /* 朱砂：全站唯一语义色，仅作批注——主按钮与发送、日主柱、当前大运、光标，
-     以及 segmented/tab/focus 的当前位批点；永远小面积、永远有含义 */
-  --cinnabar: #a6402f;
-  --cinnabar-strong: #8f3728;
-  /* 朱砂印泥外晕：印章落纸时印泥溢出的暖红光晕 */
-  --cinnabar-bleed: rgba(166, 64, 47, 0.32);
-  /* 焦点环改朱砂低饱和，与批注语义呼应 */
-  --focus-ring: 0 0 0 3px rgba(166, 64, 47, 0.22);
-  --shadow-soft: rgba(58, 44, 28, 0.14) 0 4px 16px 0;
-  --shadow-line: rgba(122, 106, 82, 0.55) 0 0 0 1px;
+  /* 朱砂：全站唯一语义色，仅作批注；永远小面积、永远有含义 */
+  --cinnabar: #a33c2c;
+  --cinnabar-strong: #8a3225;
+  --cinnabar-soft: rgba(163, 60, 44, 0.1);
+  --cinnabar-bleed: rgba(163, 60, 44, 0.3);
+  --focus-ring: 0 0 0 3px rgba(163, 60, 44, 0.2);
+  /* 纸托阴影：柔而短，像叠纸而非浮窗 */
+  --shadow-soft: rgba(48, 36, 22, 0.1) 0 3px 14px 0, rgba(48, 36, 22, 0.04) 0 1px 2px 0;
+  --shadow-line: rgba(110, 94, 70, 0.42) 0 0 0 1px;
+  --shadow-paper: rgba(48, 36, 22, 0.06) 0 2px 8px 0, var(--shadow-line);
+  /* 纸面受光高光：上沿极淡暖白，模拟纸边折光 */
+  --paper-highlight: inset 0 1px 0 rgba(255, 252, 244, 0.72);
 }
 
 /* 去场景大图与 wash，露出纯纸底（毛玻璃透景 → 摊开的纸） */
@@ -3264,22 +3261,19 @@ button:focus-visible,
   opacity: 1;
 }
 
-/* 宣纸纤维肌理：内联 SVG turbulence 扰动 + 四角 vignette，死纸化为活纸 */
+/* 宣纸纤维肌理：低频絮 + 高频颗粒 + 四角 vignette，死纸化为活纸 */
 [data-theme="ink"] .scene-layer::after {
   background:
-    /* 纸张受光不均：四角微暗，中央透亮，模拟自然光下的宣纸 */
-    radial-gradient(120% 90% at 50% 42%, transparent 0%, transparent 56%, rgba(58, 44, 28, 0.07) 100%),
-    /* 宣纸长纤维絮：低频湍流，极淡墨点散布 */
+    radial-gradient(120% 90% at 50% 40%, transparent 0%, transparent 52%, rgba(58, 44, 28, 0.08) 100%),
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 252, 244, 0.35) 0%, transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.08' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.13 0 0 0 0 0.1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.5'/%3E%3C/svg%3E"),
-    /* 细微高频颗粒：纸面短纤维毛刺 */
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0.28 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.4'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  opacity: 0.22;
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  opacity: 0.28;
   mix-blend-mode: multiply;
 }
 
-/* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter。
-   纸分两层铺陈：面板纸居中、卡片纸更亮，卡片得以从面板上「浮起」 */
+/* 玻璃面板统一去玻璃化：实纸底 + 暖灰线，撤除 backdrop-filter */
 [data-theme="ink"] .topbar,
 [data-theme="ink"] .panel,
 [data-theme="ink"] .mobile-hero-card,
@@ -3310,19 +3304,19 @@ button:focus-visible,
   -webkit-backdrop-filter: none;
 }
 
-/* 主面板级用柔纸阴影托起 */
+/* 主面板：柔纸阴影 + 上沿受光，像装裱后的纸页 */
 [data-theme="ink"] .topbar,
 [data-theme="ink"] .panel,
 [data-theme="ink"] .mobile-bottom-tabs {
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-soft), var(--paper-highlight);
 }
 
-/* 次级卡片用细线阴影，如一页纸浮起 */
+/* 次级卡片：细线 + 极轻托影 */
 [data-theme="ink"] .master-card,
 [data-theme="ink"] .answer-box,
 [data-theme="ink"] .mobile-hero-card,
 [data-theme="ink"] .mobile-card {
-  box-shadow: var(--shadow-line);
+  box-shadow: var(--shadow-paper), var(--paper-highlight);
 }
 
 /* 小构件仅以线分隔，不投影 */
@@ -3340,141 +3334,177 @@ button:focus-visible,
   box-shadow: none;
 }
 
-/* 交互态：以纸色明度变化替代玻璃透明度变化 */
-[data-theme="ink"] .master-card:hover,
-[data-theme="ink"] .master-card.active {
-  border-color: var(--ink-soft);
+/* 交互态：纸色明度 + 左侧朱砂批点（选中态） */
+[data-theme="ink"] .master-card:hover {
+  border-color: var(--ink-zhong);
   background: var(--surface-raised);
-  box-shadow: var(--shadow-line);
+  box-shadow: var(--shadow-paper), var(--paper-highlight);
+}
+
+[data-theme="ink"] .master-card.active {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow:
+    inset 3px 0 0 var(--cinnabar),
+    var(--shadow-paper),
+    var(--paper-highlight);
 }
 
 [data-theme="ink"] .mobile-menu-item:hover {
-  border-color: var(--ink-soft);
+  border-color: var(--ink-zhong);
   background: var(--surface-raised);
 }
 
 [data-theme="ink"] .relation-list > span:hover,
 [data-theme="ink"] .strength-row:hover {
   background: var(--surface-raised);
+  border-color: var(--ink-zhong);
 }
 
 [data-theme="ink"] .follow-row:focus-within {
-  border-color: var(--ink-soft);
+  border-color: var(--cinnabar);
   background: var(--surface);
   box-shadow: var(--focus-ring);
 }
 
-/* 头像描边、chip、记忆区、弹窗标题、底栏激活项等零散玻璃残留一并归纸 */
+/* 头像描边、chip、记忆区、弹窗标题、底栏激活项等归纸 */
 [data-theme="ink"] .chart-master-avatar {
   border-color: var(--line);
+  box-shadow: var(--shadow-line);
 }
 
 [data-theme="ink"] .chart-master-meta span {
   background: var(--surface-raised);
+  border: 1px solid var(--line-soft);
+  color: var(--ink-zhong);
 }
 
 [data-theme="ink"] .master-memory {
   background: var(--surface);
+  border-color: var(--line-soft);
 }
 
 [data-theme="ink"] .modal-heading {
   background: var(--surface-raised);
-}
-
-[data-theme="ink"] .mobile-bottom-tabs button.active {
-  color: var(--ink);
-  background: var(--surface-raised);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 [data-theme="ink"] .loading-mask {
-  background: rgba(242, 236, 224, 0.72);
+  background: rgba(239, 231, 214, 0.78);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
 
 /* —— 朱砂印章体系：批注 + 印章语汇 —— */
-/* 一：主行动按钮为朱砂印章 —— 直角化、印泥外晕、按压顿挫 */
+/* 一：主行动为朱砂印章 —— 直角、印泥外晕、按压顿挫 */
 [data-theme="ink"] .primary-button,
 [data-theme="ink"] .composer-send {
   position: relative;
-  color: var(--surface);
+  color: #fbf6eb;
   background: var(--cinnabar);
-  border-color: var(--cinnabar);
-  /* 印章直角，仅保留极小圆角避免视觉生硬 */
+  border-color: var(--cinnabar-strong);
   border-radius: var(--radius-sm);
   font-weight: 500;
-  letter-spacing: 0.02em;
-  /* 印泥外晕：单层暖红微晕，如印泥按纸；不叠噪点与多层描边，保持平静 */
-  box-shadow: rgba(166, 64, 47, 0.24) 0 2px 8px;
+  letter-spacing: 0.04em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 230, 0.18),
+    rgba(163, 60, 44, 0.28) 0 2px 8px;
   transition:
     transform 120ms var(--ease),
     box-shadow var(--dur-micro) var(--ease),
-    background-color var(--dur-micro) var(--ease);
+    background-color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
 }
 
 [data-theme="ink"] .primary-button:hover,
 [data-theme="ink"] .composer-send:hover:not(:disabled) {
   background: var(--cinnabar-strong);
-  border-color: var(--cinnabar-strong);
-  /* 悬停时印泥外晕轻微加深，如重按印章 */
-  box-shadow: rgba(166, 64, 47, 0.34) 0 3px 12px;
+  border-color: #752a1f;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 230, 0.12),
+    rgba(163, 60, 44, 0.36) 0 3px 12px;
 }
 
-[data-theme="ink"] .primary-button:active {
-  /* 按压落印的顿挫感 */
+[data-theme="ink"] .primary-button:active,
+[data-theme="ink"] .composer-send:active:not(:disabled) {
   transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgba(40, 16, 12, 0.22);
 }
 
-/* 二：日主之柱以朱砂圈点 —— 顶朱线 + 右上朱印两笔即止，边框底色不再加码 */
+/* 二：日主之柱 —— 顶朱线 + 右上方印 */
 [data-theme="ink"] .pillar-cell.pillar-day {
   position: relative;
   border-color: var(--line);
-  background: var(--surface);
+  background: linear-gradient(180deg, rgba(163, 60, 44, 0.04) 0%, var(--surface) 28%);
   box-shadow: inset 0 2px 0 var(--cinnabar);
 }
 
-/* 日柱右上朱印：极小红方点，如题款落章 */
+/* 日柱右上朱印：空心方印 + 中心印泥点，如题款落章 */
 [data-theme="ink"] .pillar-cell.pillar-day::after {
   content: "";
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
+  top: 7px;
+  right: 7px;
+  width: 10px;
+  height: 10px;
   border: 1.5px solid var(--cinnabar);
-  border-radius: 2px;
-  background: var(--cinnabar-bleed);
+  border-radius: 1px;
+  background:
+    radial-gradient(circle at 50% 50%, var(--cinnabar) 0 1.5px, transparent 1.7px),
+    var(--cinnabar-soft);
+  opacity: 0.9;
 }
 
-/* 三：当前大运以朱砂竖批 —— 竖线左侧批点，展开态印泥晕染 */
+/* 三：当前大运以朱砂竖批 */
+[data-theme="ink"] .luck-cycle {
+  border-color: var(--line);
+  background: var(--surface);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
+}
+
 [data-theme="ink"] .luck-cycle[open] {
-  border-color: var(--cinnabar);
+  border-color: rgba(163, 60, 44, 0.45);
+  background: linear-gradient(90deg, rgba(163, 60, 44, 0.06) 0%, var(--surface) 18%);
   box-shadow:
     inset 3px 0 0 var(--cinnabar),
-    0 0 0 1px rgba(166, 64, 47, 0.12);
+    0 0 0 1px rgba(163, 60, 44, 0.08);
 }
 
 /* 四：流式解读光标为朱砂笔锋 */
 [data-theme="ink"] .caret {
   background: var(--cinnabar);
+  width: 2px;
+  border-radius: 1px;
+  box-shadow: 0 0 6px rgba(163, 60, 44, 0.35);
 }
 
-/* 五行旺衰进度条：仅轨道暖化；条色保持墨渐变——旺衰是数据而非批注，不占朱砂 */
+/* 五行旺衰进度条：仅轨道暖化；条色保持墨阶，不占朱砂 */
 [data-theme="ink"] .strength-bar {
-  background: rgba(58, 44, 28, 0.1);
+  background: rgba(58, 44, 28, 0.08);
   box-shadow: inset 0 0 0 1px var(--line-soft);
 }
 
-/* 七：分段切换激活位 —— 朱砂精细批注，替代通用阴影 */
-[data-theme="ink"] .segmented button.active {
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 0 -2px 0 var(--cinnabar);
+/* 分段切换激活位 —— 朱砂底批 */
+[data-theme="ink"] .segmented {
+  background: var(--bg-soft);
+  border: 1px solid var(--line-soft);
+  box-shadow: none;
 }
 
-/* 八：当前移动端 Tab 激活 —— 朱砂底批，替代中性底面 */
+[data-theme="ink"] .segmented button.active {
+  color: var(--ink-jiao);
+  background: var(--surface);
+  box-shadow:
+    inset 0 -2px 0 var(--cinnabar),
+    var(--shadow-line);
+}
+
+/* 移动端 Tab 激活 —— 朱砂底批 */
 [data-theme="ink"] .mobile-bottom-tabs button.active {
-  color: var(--ink);
+  color: var(--ink-jiao);
   background: var(--surface-raised);
   box-shadow: inset 0 -2px 0 var(--cinnabar);
 }
@@ -3527,81 +3557,136 @@ button:focus-visible,
    方向 D：留白与题款版式（计白当黑）
    ============================================================ */
 
-/* 1. 区块之间用留白带替代纯边框分隔，边框极度弱化 */
+/* 区块之间用留白带 + 极淡线分隔 */
 [data-theme="ink"] .chart-section {
   border-top: 1px solid var(--line-soft);
   padding-top: 22px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-/* 4. 四柱之间增大留白，用空间分隔 */
+/* 题款式区块标题：左侧朱砂印点 + 衬线字 */
+[data-theme="ink"] .chart-section-title,
+[data-theme="ink"] .rail-heading-title,
+[data-theme="ink"] .panel-title h2 {
+  letter-spacing: 0.04em;
+}
+
+/* 印点贴标题左侧；右侧计数用 margin-left:auto 顶开，避免 space-between 把印点拆散 */
+[data-theme="ink"] .chart-section-title {
+  justify-content: flex-start;
+  gap: 8px;
+  color: var(--ink-jiao);
+}
+
+[data-theme="ink"] .chart-section-title::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--cinnabar);
+  border-radius: 1px;
+  background: var(--cinnabar-soft);
+  box-shadow: inset 0 0 0 1.5px var(--paper-panel);
+  opacity: 0.9;
+}
+
+[data-theme="ink"] .chart-section-title strong {
+  margin-left: auto;
+}
+
+/* 四柱：更大留白，柱面硬朗小圆角 */
 [data-theme="ink"] .pillar-grid {
   gap: 12px;
   background: transparent;
   border: none;
 }
+
 [data-theme="ink"] .pillar-cell {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+}
+
+[data-theme="ink"] .pillar-cell:hover {
+  border-color: var(--ink-zhong);
+  background: var(--surface-raised);
+}
+
+/* 命盘迷你项：纸片感 */
+[data-theme="ink"] .chart-mini-item {
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--paper-highlight);
 }
 
 /* ============================================================
-   方向 E：纸面受光（对角极淡光影；圆环祥云纹屏显似信号波纹，不取）
+   方向 E：纸面受光
    ============================================================ */
 
-/* 在 scene-layer 的 before 层叠加极淡对角光影，不影响 after 层的宣纸肌理 */
 [data-theme="ink"] .scene-layer::before {
-  background-image: 
-    radial-gradient(circle at 85% 15%, rgba(122, 106, 82, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 10% 85%, rgba(122, 106, 82, 0.04) 0%, transparent 50%);
+  background-image:
+    radial-gradient(circle at 82% 12%, rgba(122, 106, 82, 0.07) 0%, transparent 42%),
+    radial-gradient(circle at 12% 88%, rgba(122, 106, 82, 0.05) 0%, transparent 48%),
+    linear-gradient(165deg, rgba(255, 252, 244, 0.35) 0%, transparent 38%);
   background-color: var(--bg);
 }
 
 /* ============================================================
-   方向 F：自由发挥 - 纸墨朱砂细节深化
+   方向 F：纸墨朱砂细节深化
    ============================================================ */
 
-/* 1. 选区高亮改朱砂晕染 */
+/* 选区高亮改朱砂晕染 */
 [data-theme="ink"] ::selection {
   background: var(--cinnabar-bleed);
   color: var(--ink-jiao);
   text-shadow: none;
 }
+
 [data-theme="ink"] ::-moz-selection {
   background: var(--cinnabar-bleed);
   color: var(--ink-jiao);
   text-shadow: none;
 }
 
-/* 2. 滚动条样式纸墨化 */
+/* 滚动条纸墨化：更细、更克制 */
 [data-theme="ink"] ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 [data-theme="ink"] ::-webkit-scrollbar-track {
-  background: var(--bg);
-  border-left: 1px solid var(--line-soft);
+  background: transparent;
 }
+
 [data-theme="ink"] ::-webkit-scrollbar-thumb {
   background: var(--line);
   border-radius: 4px;
-  border: 2px solid var(--bg);
-}
-[data-theme="ink"] ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-soft);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-/* 3. 表单控件与输入框的纸墨质感 */
+[data-theme="ink"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-zhong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* 表单控件纸墨质感 */
 [data-theme="ink"] input,
 [data-theme="ink"] textarea,
 [data-theme="ink"] select {
   background: var(--surface);
   border: 1px solid var(--line);
   color: var(--ink);
-  /* 收敛过渡：仅过渡边框/背景，避免 all 引发意外动效与性能开销 */
-  transition: border-color var(--dur-micro) var(--ease),
+  transition:
+    border-color var(--dur-micro) var(--ease),
     background-color var(--dur-micro) var(--ease),
     box-shadow var(--dur-micro) var(--ease);
 }
+
 [data-theme="ink"] input:focus,
 [data-theme="ink"] textarea:focus,
 [data-theme="ink"] select:focus {
@@ -3610,35 +3695,101 @@ button:focus-visible,
   box-shadow: var(--focus-ring);
   background: var(--surface);
 }
+
 [data-theme="ink"] input::placeholder,
 [data-theme="ink"] textarea::placeholder {
   color: var(--ink-dan);
 }
 
-/* 4. 弹窗纸墨化加重边缘（对齐本项目真实弹窗类名） */
+/* 弹窗：装裱纸页感 */
 [data-theme="ink"] .master-modal,
 [data-theme="ink"] .profile-modal,
 [data-theme="ink"] .history-modal,
 [data-theme="ink"] .birth-modal,
 [data-theme="ink"] .crop-dialog {
-  box-shadow: 
-    0 16px 40px -12px rgba(38, 32, 26, 0.28),
-    0 0 0 1px var(--line) inset;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    0 20px 48px -16px rgba(36, 28, 18, 0.32),
+    0 0 0 1px rgba(255, 252, 244, 0.4) inset,
+    var(--paper-highlight);
 }
 
-/* 引用块底色暖化：默认主题的 rgba(232,230,220) 灰底在暖纸上偏冷 */
+/* 解读区：手稿阅读感 —— 行距更舒展、衬线标题 */
+[data-theme="ink"] .answer-box {
+  padding: 22px 24px;
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 244, 0.55) 0%, transparent 48px),
+    var(--surface);
+}
+
+[data-theme="ink"] .answer-box p,
+[data-theme="ink"] .markdown-body {
+  color: var(--ink-soft);
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+
+[data-theme="ink"] .markdown-body h1,
+[data-theme="ink"] .markdown-body h2,
+[data-theme="ink"] .markdown-body h3,
+[data-theme="ink"] .markdown-body h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  color: var(--ink-jiao);
+  letter-spacing: 0.03em;
+}
+
+[data-theme="ink"] .markdown-body strong {
+  color: var(--ink-jiao);
+  font-weight: 600;
+}
+
 [data-theme="ink"] .markdown-body blockquote {
-  background: rgba(230, 221, 203, 0.5);
+  margin-left: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--cinnabar);
+  background: rgba(228, 217, 196, 0.45);
+  color: var(--ink-zhong);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
-/* 5. 分割线 hr 纸墨化 */
+[data-theme="ink"] .markdown-body code {
+  background: var(--bg-soft);
+  border: 1px solid var(--line-soft);
+  color: var(--ink-nong);
+  border-radius: 2px;
+}
+
+[data-theme="ink"] .markdown-body pre {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="ink"] .markdown-body a {
+  color: var(--cinnabar);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+[data-theme="ink"] .markdown-body a:hover {
+  color: var(--cinnabar-strong);
+}
+
+/* 分割线 */
 [data-theme="ink"] hr {
-  border-color: var(--line-soft);
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  opacity: 1;
 }
 
-/* 6. 危险软化按钮的旧红硬编码同步转绛 */
+/* 危险软按钮转绛 */
 [data-theme="ink"] .secondary-button.danger-soft {
   border-color: rgba(126, 47, 63, 0.42);
+  color: var(--danger);
 }
 
 [data-theme="ink"] .secondary-button.danger-soft:hover {
@@ -3646,14 +3797,17 @@ button:focus-visible,
   background: rgba(126, 47, 63, 0.08);
 }
 
-/* 7. 焦点色统一归朱砂：按钮外环与输入框焦点环同为「当前位批点」 */
+/* 焦点环归朱砂 */
 [data-theme="ink"] button:focus-visible,
-[data-theme="ink"] .master-card:focus-visible {
-  outline: 2px solid rgba(166, 64, 47, 0.55);
+[data-theme="ink"] .master-card:focus-visible,
+[data-theme="ink"] .text-trigger:focus-visible,
+[data-theme="ink"] .birth-trigger:focus-visible,
+[data-theme="ink"] .icon-button:focus-visible {
+  outline: 2px solid rgba(163, 60, 44, 0.5);
+  outline-offset: 2px;
 }
 
-/* 8. 按钮与输入控件圆角统一收至 4px：与朱砂印章同阶，避免弹窗页脚
-   「圆角取消 + 直角确定」并排不齐；纸墨主题整体取硬朗 */
+/* 控件圆角统一收至 4px，纸墨取硬朗 */
 [data-theme="ink"] .brand-button,
 [data-theme="ink"] .text-trigger,
 [data-theme="ink"] .birth-trigger,
@@ -3662,7 +3816,167 @@ button:focus-visible,
 [data-theme="ink"] .ghost-button,
 [data-theme="ink"] input,
 [data-theme="ink"] select,
-[data-theme="ink"] textarea {
+[data-theme="ink"] textarea,
+[data-theme="ink"] .panel,
+[data-theme="ink"] .topbar,
+[data-theme="ink"] .master-card,
+[data-theme="ink"] .mobile-hero-card,
+[data-theme="ink"] .mobile-card,
+[data-theme="ink"] .mobile-bottom-tabs,
+[data-theme="ink"] .mobile-menu-item {
   border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   方向 G：品牌 / 控件 / 关系签 / 顶栏收口
+   ============================================================ */
+
+/* 品牌名衬线化；角标化为小印章 */
+[data-theme="ink"] .brand-button span {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  letter-spacing: 0.06em;
+  color: var(--ink-jiao);
+}
+
+[data-theme="ink"] .brand-button small {
+  border-radius: 2px;
+  border: 1px solid rgba(163, 60, 44, 0.45);
+  background: var(--cinnabar-soft);
+  color: var(--cinnabar);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* 次级按钮：墨线描边，悬停染淡墨 */
+[data-theme="ink"] .secondary-button,
+[data-theme="ink"] .ghost-button {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+[data-theme="ink"] .secondary-button:hover,
+[data-theme="ink"] .ghost-button:hover {
+  color: var(--ink-jiao);
+  border-color: var(--ink-zhong);
+  background: var(--surface-raised);
+}
+
+/* 图标按钮：悬停纸色抬升 */
+[data-theme="ink"] .icon-button {
+  color: var(--ink-soft);
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+[data-theme="ink"] .icon-button:hover {
+  color: var(--ink-jiao);
+  border-color: var(--ink-zhong);
+  background: var(--surface-raised);
+}
+
+/* 出生信息 / 文本触发：纸条输入感 */
+[data-theme="ink"] .text-trigger,
+[data-theme="ink"] .birth-trigger {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-soft);
+  box-shadow: var(--paper-highlight);
+}
+
+[data-theme="ink"] .text-trigger:hover,
+[data-theme="ink"] .birth-trigger:hover {
+  border-color: var(--ink-zhong);
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+/* 关系标签：纸签 + 悬停墨边 */
+[data-theme="ink"] .relation-list > span {
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
+}
+
+[data-theme="ink"] .relation-list strong {
+  color: var(--ink-nong);
+}
+
+[data-theme="ink"] .relation-list small {
+  color: var(--ink-dan);
+}
+
+/* 大师名：重墨；开场白：淡墨 */
+[data-theme="ink"] .master-name {
+  color: var(--ink-jiao);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="ink"] .master-opening {
+  color: var(--ink-dan);
+}
+
+[data-theme="ink"] .master-card img {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-line);
+}
+
+/* 顶栏：底部分隔更清晰的纸边 */
+[data-theme="ink"] .topbar {
+  border-bottom-width: 1px;
+}
+
+/* 跟进输入条：宣纸条 */
+[data-theme="ink"] .follow-row {
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--paper-highlight);
+}
+
+/* 空状态图标容器 */
+[data-theme="ink"] .chart-empty-icon {
+  background: var(--surface-raised);
+  border-color: var(--line-soft);
+  color: var(--ink-dan);
+}
+
+/* 面板标题字色归焦墨 */
+[data-theme="ink"] .panel-title h2,
+[data-theme="ink"] .rail-heading span {
+  color: var(--ink-jiao);
+}
+
+/* 移动端命盘条与高亮行 */
+[data-theme="ink"] .mobile-pillar-strip,
+[data-theme="ink"] .mobile-highlight-row span {
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="ink"] .mobile-follow-card {
+  box-shadow: var(--shadow-paper), var(--paper-highlight);
+}
+
+/* reduced-motion：纸墨动效一并收敛 */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="ink"] .primary-button,
+  [data-theme="ink"] .composer-send,
+  [data-theme="ink"] .master-card,
+  [data-theme="ink"] .pillar-cell,
+  [data-theme="ink"] .luck-cycle,
+  [data-theme="ink"] .relation-list > span,
+  [data-theme="ink"] input,
+  [data-theme="ink"] textarea,
+  [data-theme="ink"] select {
+    transition: none;
+  }
+
+  [data-theme="ink"] .primary-button:active,
+  [data-theme="ink"] .composer-send:active:not(:disabled) {
+    transform: none;
+  }
 }
 
