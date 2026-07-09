@@ -1955,7 +1955,9 @@ button:focus-visible,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  padding: 0 10px 10px;
+  /* 用 margin 留白，避免 padding 区透出 line-soft 灰底形成左/下/右蒙版 */
+  margin: 0 10px 10px;
+  padding: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--line-soft);
