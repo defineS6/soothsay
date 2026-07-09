@@ -1547,38 +1547,47 @@ onMounted(async () => {
         <small>v{{ appVersion }}</small>
       </button>
       <nav class="top-actions" :aria-label="t('nav.main')">
-        <button class="icon-button mobile-top-action" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
-          <UserRound :size="20" aria-hidden="true" />
-        </button>
-        <button class="text-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
-          <UserRound :size="18" aria-hidden="true" />
-          <span>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</span>
-        </button>
-        <button class="text-trigger" type="button" :title="t('nav.profile')" @click="profileModalOpen = true">
-          <Save :size="18" aria-hidden="true" />
-          <span>{{ t('nav.profile') }} {{ savedFacts.length }}</span>
-        </button>
-        <button class="text-trigger" type="button" :title="t('nav.history')" @click="openHistoryModal">
-          <MessageCircle :size="18" aria-hidden="true" />
-          <span>{{ t('nav.history') }} {{ historyMessages.length }}</span>
-        </button>
-        <button class="birth-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
-          <CalendarDays :size="18" aria-hidden="true" />
-          <span>{{ birthTriggerLabel }}</span>
-        </button>
-        <button class="icon-button language-toggle" type="button" :title="t('language.label')" :aria-label="t('language.label')" @click="toggleLocale">
-          <Languages :size="20" aria-hidden="true" />
-          <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
-        </button>
-        <button class="icon-button theme-toggle" type="button" :title="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" :aria-label="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" @click="toggleTheme">
-          <Palette :size="20" aria-hidden="true" />
-        </button>
-        <button class="icon-button" type="button" :title="t('nav.credentials')" @click="openSettings">
-          <KeyRound :size="20" aria-hidden="true" />
-        </button>
-        <button class="icon-button desktop-admin-action" type="button" :title="t('nav.admin')" @click="activePanel = 'admin'">
-          <ShieldCheck :size="20" aria-hidden="true" />
-        </button>
+        <!-- 上下文：大师 / 生辰 -->
+        <div class="top-actions-group top-actions-context">
+          <button class="icon-button mobile-top-action" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
+            <UserRound :size="20" aria-hidden="true" />
+          </button>
+          <button class="text-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
+            <UserRound :size="18" aria-hidden="true" />
+            <span>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</span>
+          </button>
+          <button class="birth-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
+            <CalendarDays :size="18" aria-hidden="true" />
+            <span>{{ birthTriggerLabel }}</span>
+          </button>
+        </div>
+        <!-- 工具：档案 / 历史 / 凭据 / 管理 -->
+        <div class="top-actions-group top-actions-tools">
+          <button class="text-trigger" type="button" :title="t('nav.profile')" @click="profileModalOpen = true">
+            <Save :size="18" aria-hidden="true" />
+            <span>{{ t('nav.profile') }} {{ savedFacts.length }}</span>
+          </button>
+          <button class="text-trigger" type="button" :title="t('nav.history')" @click="openHistoryModal">
+            <MessageCircle :size="18" aria-hidden="true" />
+            <span>{{ t('nav.history') }} {{ historyMessages.length }}</span>
+          </button>
+          <button class="icon-button" type="button" :title="t('nav.credentials')" @click="openSettings">
+            <KeyRound :size="20" aria-hidden="true" />
+          </button>
+          <button class="icon-button desktop-admin-action" type="button" :title="t('nav.admin')" @click="activePanel = 'admin'">
+            <ShieldCheck :size="20" aria-hidden="true" />
+          </button>
+        </div>
+        <!-- 系统：语言 / 主题 -->
+        <div class="top-actions-group top-actions-system">
+          <button class="icon-button language-toggle" type="button" :title="t('language.label')" :aria-label="t('language.label')" @click="toggleLocale">
+            <Languages :size="20" aria-hidden="true" />
+            <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
+          </button>
+          <button class="icon-button theme-toggle" type="button" :title="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" :aria-label="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" @click="toggleTheme">
+            <Palette :size="20" aria-hidden="true" />
+          </button>
+        </div>
       </nav>
     </header>
 
@@ -2071,20 +2080,23 @@ onMounted(async () => {
             </div>
           </div>
           <div v-if="chart" class="chart-content">
-            <div class="pillar-grid">
-            <article v-for="pillar in pillarRows" :key="pillar.name" class="pillar-cell" :class="{ 'pillar-day': pillar.name === 'day' }">
-              <span>{{ pillar.label }}</span>
-                <strong>{{ pillar.ganZhi }}</strong>
-                <small>{{ pillar.tenGodOfGan }} · {{ pillar.naYin }}</small>
-                <small>藏干 {{ pillar.hiddenGan.join('、') }}</small>
-                <small v-if="pillar.xunKong">空亡 {{ pillar.xunKong }}</small>
-                <small v-if="pillar.shenSha?.length" class="pillar-shensha">神煞 {{ pillar.shenSha.join('、') }}</small>
-              </article>
+            <!-- 命盘主角区：四柱 + 五行统计 + 日主摘要 -->
+            <div class="chart-hero">
+              <div class="pillar-grid">
+                <article v-for="pillar in pillarRows" :key="pillar.name" class="pillar-cell" :class="{ 'pillar-day': pillar.name === 'day' }">
+                  <span>{{ pillar.label }}</span>
+                  <strong>{{ pillar.ganZhi }}</strong>
+                  <small>{{ pillar.tenGodOfGan }} · {{ pillar.naYin }}</small>
+                  <small>藏干 {{ pillar.hiddenGan.join('、') }}</small>
+                  <small v-if="pillar.xunKong">空亡 {{ pillar.xunKong }}</small>
+                  <small v-if="pillar.shenSha?.length" class="pillar-shensha">神煞 {{ pillar.shenSha.join('、') }}</small>
+                </article>
+              </div>
+              <div class="stats-grid">
+                <span v-for="(value, key) in chart.fiveElementStats" :key="key">{{ key }} {{ value }}</span>
+              </div>
+              <p class="note-line chart-hero-summary">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · {{ formatLuckSummary(chart.luck) }}</p>
             </div>
-            <div class="stats-grid">
-              <span v-for="(value, key) in chart.fiveElementStats" :key="key">{{ key }} {{ value }}</span>
-            </div>
-            <p class="note-line">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · {{ formatLuckSummary(chart.luck) }}</p>
             <section class="chart-section">
               <div class="chart-section-title">
                 <span>命盘要素</span>
@@ -2159,7 +2171,8 @@ onMounted(async () => {
               </div>
             </section>
             <p v-for="note in chart.notes" :key="note" class="note-line">{{ note }}</p>
-            <div class="actions-row">
+            <!-- 主操作沉底：完整解读优先 -->
+            <div class="actions-row chart-actions">
               <button class="primary-button" type="button" :disabled="streaming" @click="requestReading('bazi_full')">
                 <Wand2 :size="18" aria-hidden="true" />
                 {{ t('home.fullReading') }}

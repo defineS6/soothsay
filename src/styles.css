@@ -133,13 +133,17 @@ button:disabled {
   --scene-wash-bottom: 0.46;
   --scene-wash-side-start: 0.48;
   --scene-wash-side-end: 0.4;
+  /* 顶栏预留高度，与 fixed topbar 对齐 */
+  --shell-top-space: 88px;
+  --shell-inline: 28px;
+  --shell-bottom: 28px;
   position: relative;
   display: flex;
   height: 100vh;
   height: 100dvh;
   min-height: 0;
   flex-direction: column;
-  padding: 96px 32px 40px;
+  padding: var(--shell-top-space) var(--shell-inline) var(--shell-bottom);
   overflow: hidden;
 }
 
@@ -172,15 +176,16 @@ button:disabled {
 
 .topbar {
   position: fixed;
-  top: 16px;
-  left: 24px;
-  right: 24px;
+  top: 14px;
+  left: var(--shell-inline, 28px);
+  right: var(--shell-inline, 28px);
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px;
+  min-height: 56px;
+  padding: 10px 12px;
   border: 1px solid rgba(255, 253, 248, 0.6);
   border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.58);
@@ -237,7 +242,23 @@ button:disabled {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+/* 顶栏分组：上下文 | 工具 | 系统，组间留白拉开层次 */
+.top-actions-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+}
+
+.top-actions-tools,
+.top-actions-system {
+  padding-left: 12px;
+  border-left: 1px solid var(--line-soft);
 }
 
 .text-trigger,
@@ -343,40 +364,47 @@ button:disabled {
   z-index: 40;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(20, 20, 19, 0.38);
+  padding: var(--space-xl);
+  background: rgba(20, 20, 19, 0.36);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.birth-modal {
+/* 弹窗壳：统一圆角/边线/阴影；宽度分 sm/md/lg */
+.birth-modal,
+.master-modal,
+.profile-modal,
+.history-modal,
+.crop-dialog {
   display: flex;
-  width: min(980px, 100%);
-  max-height: min(760px, calc(100vh - 48px));
-  min-height: 520px;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  box-shadow: rgba(20, 20, 19, 0.24) 0 24px 80px;
+  box-shadow:
+    rgba(20, 20, 19, 0.2) 0 20px 64px,
+    inset 0 1px 0 rgba(255, 253, 248, 0.55);
+}
+
+.birth-modal {
+  width: min(980px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  min-height: 520px;
 }
 
 .master-modal,
 .profile-modal,
 .history-modal {
-  display: flex;
-  width: min(760px, 100%);
   max-height: min(720px, calc(100vh - 48px));
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: rgba(20, 20, 19, 0.24) 0 24px 80px;
+}
+
+.master-modal {
+  width: min(760px, 100%);
 }
 
 .profile-modal {
-  width: min(680px, 100%);
+  width: min(640px, 100%);
 }
 
 .history-modal {
@@ -385,12 +413,13 @@ button:disabled {
 
 .modal-heading {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
   border-bottom: 1px solid var(--line);
-  background: rgba(250, 249, 245, 0.86);
+  background: rgba(250, 249, 245, 0.9);
 }
 
 .modal-heading h2,
@@ -1006,7 +1035,7 @@ button:disabled {
 .mobile-home-view,
 .mobile-mine-view {
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-lg);
 }
 
 .mobile-hero-card,
@@ -1025,7 +1054,7 @@ button:disabled {
 .mobile-hero-card {
   position: relative;
   overflow: hidden;
-  padding: 18px;
+  padding: var(--space-lg) var(--space-xl);
 }
 
 .mobile-hero-dot {
@@ -1061,7 +1090,7 @@ button:disabled {
 }
 
 .mobile-card {
-  padding: 18px;
+  padding: var(--space-lg);
 }
 
 .mobile-card-head {
@@ -1069,8 +1098,8 @@ button:disabled {
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 .mobile-card-head h2 {
@@ -1426,7 +1455,8 @@ button:disabled {
   display: grid;
   height: 100%;
   min-height: 0;
-  grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.05fr);
+  /* 命盘略窄、解读略宽：解读成为视觉主舞台 */
+  grid-template-columns: minmax(340px, 0.85fr) minmax(440px, 1.15fr);
   gap: 20px;
   align-items: stretch;
   overflow: hidden;
@@ -1438,7 +1468,7 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(300px, 0.86fr) minmax(380px, 1.14fr);
   gap: var(--grid-gutter);
-  align-items: start;
+  align-items: stretch;
 }
 
 .chart-layout {
@@ -1450,8 +1480,8 @@ button:disabled {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 16px;
-  padding: 32px;
+  gap: var(--space-lg);
+  padding: var(--space-2xl);
   border: 1px solid rgba(255, 253, 248, 0.6);
   border-radius: var(--radius-lg);
   background: rgba(255, 253, 248, 0.58);
@@ -1465,8 +1495,8 @@ button:disabled {
 
 .chart-panel,
 .conversation-panel {
-  gap: 14px;
-  padding: 24px;
+  gap: var(--space-md);
+  padding: var(--space-xl);
 }
 
 .chart-master-strip {
@@ -1646,21 +1676,35 @@ button:focus-visible,
   min-height: 18px;
 }
 
+/* 命盘主角区：四柱 + 统计 + 摘要，与下方题款区块分层 */
+.chart-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.chart-hero-summary {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
 .pillar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .pillar-cell {
   display: flex;
-  min-height: 132px;
+  min-height: 140px;
   flex-direction: column;
   justify-content: space-between;
   gap: 6px;
   padding: 14px;
   border: 1px solid rgba(255, 253, 248, 0.5);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.4);
   backdrop-filter: blur(10px) saturate(1.08);
   -webkit-backdrop-filter: blur(10px) saturate(1.08);
@@ -1686,10 +1730,10 @@ button:focus-visible,
 .pillar-cell strong {
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(26px, 2.4vw, 34px);
   font-weight: 500;
   letter-spacing: 0.02em;
-  line-height: 1;
+  line-height: 1.05;
 }
 
 .pillar-cell small {
@@ -1726,9 +1770,10 @@ button:focus-visible,
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  gap: var(--space-md);
+  padding-top: var(--space-lg);
+  margin-top: 2px;
+  border-top: 1px solid var(--line-soft);
 }
 
 .chart-section-title {
@@ -1740,8 +1785,8 @@ button:focus-visible,
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: var(--weight-display);
+  letter-spacing: 0.03em;
 }
 
 .chart-section-title strong {
@@ -2010,6 +2055,27 @@ button:focus-visible,
   flex: 0 0 auto;
 }
 
+/* 主操作吸底：滚动时仍可发起解读 */
+.chart-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: auto;
+  padding: var(--space-md) 0 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 253, 248, 0) 0%,
+    rgba(255, 253, 248, 0.88) 28%,
+    rgba(255, 253, 248, 0.96) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.chart-actions .primary-button {
+  min-width: 132px;
+}
+
 .lot-button {
   position: relative;
   min-width: 112px;
@@ -2116,10 +2182,13 @@ button:focus-visible,
   min-height: 0;
   flex-direction: column;
   flex: 1 1 auto;
-  gap: 14px;
+  gap: var(--space-md);
   overflow: auto;
+  padding-right: 2px;
+  scroll-padding-bottom: 72px;
 }
 
+/* 空状态：文案与 CTA 层级拉开 */
 .chart-empty {
   display: flex;
   min-height: 0;
@@ -2127,8 +2196,8 @@ button:focus-visible,
   flex: 1 1 auto;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 32px 20px;
+  gap: var(--space-lg);
+  padding: var(--space-2xl) var(--space-lg);
   overflow: auto;
   text-align: center;
 }
@@ -2248,12 +2317,17 @@ button:focus-visible,
   overflow: hidden;
 }
 
+/* 解读面板：阅读面撑满，composer 沉底 */
+.conversation-panel .panel-title {
+  flex: 0 0 auto;
+}
+
 .answer-box {
   flex: 1;
   min-height: 0;
   max-height: none;
   overflow: auto;
-  padding: 20px 22px;
+  padding: var(--space-xl) var(--space-xl);
   border: 1px solid rgba(255, 253, 248, 0.5);
   border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.42);
@@ -2267,6 +2341,26 @@ button:focus-visible,
   color: var(--ink-soft);
   line-height: 1.78;
   white-space: pre-wrap;
+}
+
+/* 历史预览消息：压缩密度，不与正式解读抢戏 */
+.answer-box .chat-message {
+  max-width: var(--paragraph-max);
+  margin: 0 0 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.answer-box .chat-message:last-child {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.answer-box .chat-user {
+  color: var(--muted);
 }
 
 .answer-box p:last-child {
@@ -2457,10 +2551,32 @@ button:focus-visible,
   overflow: auto;
 }
 
+/* 凭据 / 管理登录：窄栏居中，表单节奏统一 */
 .settings-panel,
 .admin-login {
-  width: min(620px, 100%);
+  width: min(560px, 100%);
   margin: 0 auto;
+  gap: var(--space-lg);
+}
+
+.settings-panel label,
+.admin-login label,
+.admin-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.settings-panel .actions-row,
+.admin-login .actions-row,
+.admin-form .actions-row {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--line-soft);
 }
 
 .admin-remember {
@@ -2469,6 +2585,16 @@ button:focus-visible,
 
 .admin-layout {
   width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.admin-form,
+.admin-list {
+  min-height: min(640px, calc(100dvh - var(--shell-top-space, 88px) - 40px));
+}
+
+.admin-list .master-card {
+  width: 100%;
 }
 
 .ai-generator,
@@ -2768,12 +2894,47 @@ button:focus-visible,
   }
 }
 
+/* 中宽屏：保留双栏，收紧间距与内边距 */
+@media (max-width: 1200px) and (min-width: 981px) {
+  .app-shell {
+    --shell-inline: 20px;
+    --shell-bottom: 20px;
+  }
+
+  .reading-stage {
+    grid-template-columns: minmax(300px, 0.9fr) minmax(360px, 1.1fr);
+    gap: 16px;
+  }
+
+  .chart-panel,
+  .conversation-panel {
+    padding: var(--space-lg);
+  }
+
+  .top-actions-tools .text-trigger span {
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 980px) {
   .reading-stage,
   .chart-layout,
   .two-column,
   .admin-grid {
     grid-template-columns: 1fr;
+  }
+
+  .top-actions-tools,
+  .top-actions-system {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .top-actions {
+    gap: 8px;
   }
 
   .birth-modal-body {
@@ -2820,12 +2981,37 @@ button:focus-visible,
     --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
     --mobile-topbar-space: 88px;
     --mobile-bottom-nav-space: calc(96px + var(--mobile-safe-bottom));
+    --shell-inline: 14px;
     height: 100svh;
     height: 100dvh;
-    padding: var(--mobile-topbar-space) 14px var(--mobile-bottom-nav-space);
+    padding: var(--mobile-topbar-space) var(--shell-inline) var(--mobile-bottom-nav-space);
     overflow-x: hidden;
     overflow-y: auto;
     scroll-padding-bottom: var(--mobile-bottom-nav-space);
+  }
+
+  .top-actions-group {
+    gap: 6px;
+  }
+
+  .top-actions-tools,
+  .top-actions-system {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .chart-actions {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 253, 248, 0) 0%,
+      rgba(255, 253, 248, 0.94) 36%,
+      rgba(255, 253, 248, 0.98) 100%
+    );
+  }
+
+  .chart-actions .primary-button,
+  .chart-actions .secondary-button {
+    min-height: 44px;
   }
 
   .app-shell.mobile-workspace-shell {
@@ -3174,13 +3360,19 @@ button:focus-visible,
 
   .mobile-bottom-tabs button.active {
     color: var(--ink);
-    background: rgba(232, 230, 220, 0.72);
+    background: rgba(232, 230, 220, 0.78);
+    box-shadow: inset 0 0 0 1px rgba(20, 20, 19, 0.06);
   }
 
   .mobile-bottom-tabs span {
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
+  }
+
+  .mobile-quick-grid .secondary-button,
+  .mobile-quick-grid .primary-button {
+    min-height: 44px;
   }
 }
 
@@ -3950,6 +4142,40 @@ button:focus-visible,
 [data-theme="ink"] .panel-title h2,
 [data-theme="ink"] .rail-heading span {
   color: var(--ink-jiao);
+}
+
+/* 顶栏分组分隔线：淡墨 */
+[data-theme="ink"] .top-actions-tools,
+[data-theme="ink"] .top-actions-system {
+  border-left-color: var(--line-soft);
+}
+
+/* 命盘主角区与吸底操作：纸面质感 */
+[data-theme="ink"] .chart-hero {
+  border-bottom-color: var(--line-soft);
+}
+
+[data-theme="ink"] .chart-actions {
+  background: linear-gradient(
+    180deg,
+    rgba(251, 246, 235, 0) 0%,
+    rgba(251, 246, 235, 0.9) 28%,
+    rgba(246, 239, 224, 0.98) 100%
+  );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-theme="ink"] .settings-panel .actions-row,
+[data-theme="ink"] .admin-login .actions-row,
+[data-theme="ink"] .admin-form .actions-row {
+  border-top-color: var(--line-soft);
+}
+
+[data-theme="ink"] .modal-backdrop {
+  background: rgba(36, 28, 18, 0.32);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 /* 移动端命盘条与高亮行 */
