@@ -3387,6 +3387,186 @@ button:focus-visible,
   }
 }
 
+/* ============================================================
+   玄砚主题（第三皮肤）
+   通过 <html data-theme="inkstone"> 激活，以暖炭黑、牙白与哑光古铜构成低照度阅读界面。
+   古铜色只承担选中、聚焦与命盘重点，不用于大面积装饰。
+   ============================================================ */
+[data-theme="inkstone"] {
+  color-scheme: dark;
+  --bg: #161513;
+  --bg-soft: #1f1e1a;
+  --surface: #26241f;
+  --surface-raised: #2d2a24;
+  --ink: #e7e1cd;
+  --ink-soft: #beb7a3;
+  --muted: #918a7b;
+  --line: #4d473c;
+  --line-soft: rgba(77, 71, 60, 0.62);
+  --danger: #c57a70;
+  --bronze: #b9a075;
+  --bronze-strong: #ccb384;
+  --bronze-soft: rgba(185, 160, 117, 0.12);
+  --focus-ring: 0 0 0 3px rgba(185, 160, 117, 0.24);
+  --shadow-soft: rgba(0, 0, 0, 0.32) 0 8px 24px 0;
+  --shadow-line: rgba(185, 160, 117, 0.28) 0 0 0 1px;
+  --weight-display: 400;
+  --ls-display: 0.02em;
+}
+
+[data-theme="inkstone"] .scene-layer::before {
+  background-image: none;
+  background: var(--bg);
+  filter: none;
+  opacity: 1;
+}
+
+/* 极淡砚石颗粒只提供材质感，不与正文争夺注意力。 */
+[data-theme="inkstone"] .scene-layer::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' seed='11'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+  opacity: 0.16;
+  mix-blend-mode: soft-light;
+}
+
+[data-theme="inkstone"] .topbar,
+[data-theme="inkstone"] .panel,
+[data-theme="inkstone"] .mobile-hero-card,
+[data-theme="inkstone"] .mobile-card,
+[data-theme="inkstone"] .mobile-bottom-tabs {
+  border-color: var(--line);
+  background: rgba(38, 36, 31, 0.9);
+  backdrop-filter: blur(18px) saturate(0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(0.86);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(231, 225, 205, 0.04);
+}
+
+[data-theme="inkstone"] .master-card,
+[data-theme="inkstone"] .answer-box,
+[data-theme="inkstone"] .pillar-cell,
+[data-theme="inkstone"] .chart-master-strip,
+[data-theme="inkstone"] .relation-list > span,
+[data-theme="inkstone"] .follow-row,
+[data-theme="inkstone"] .chart-empty-icon,
+[data-theme="inkstone"] .mobile-master-card,
+[data-theme="inkstone"] .mobile-pillar-strip,
+[data-theme="inkstone"] .mobile-highlight-row span,
+[data-theme="inkstone"] .mobile-follow-card,
+[data-theme="inkstone"] .mobile-empty-card,
+[data-theme="inkstone"] .mobile-menu-item,
+[data-theme="inkstone"] .luck-cycle,
+[data-theme="inkstone"] input,
+[data-theme="inkstone"] textarea,
+[data-theme="inkstone"] select {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+[data-theme="inkstone"] .master-card:hover,
+[data-theme="inkstone"] .mobile-menu-item:hover,
+[data-theme="inkstone"] .relation-list > span:hover,
+[data-theme="inkstone"] .strength-row:hover {
+  border-color: rgba(185, 160, 117, 0.58);
+  background: var(--surface-raised);
+  transform: none;
+}
+
+[data-theme="inkstone"] .master-card.active,
+[data-theme="inkstone"] .segmented button.active,
+[data-theme="inkstone"] .mobile-bottom-tabs button.active {
+  color: var(--ink);
+  border-color: var(--bronze);
+  background: var(--bronze-soft);
+  box-shadow: inset 0 -2px 0 var(--bronze);
+}
+
+[data-theme="inkstone"] .primary-button,
+[data-theme="inkstone"] .composer-send {
+  color: var(--bg);
+  border-color: var(--bronze);
+  background: var(--bronze);
+  box-shadow: none;
+}
+
+[data-theme="inkstone"] .primary-button:hover,
+[data-theme="inkstone"] .composer-send:hover:not(:disabled) {
+  border-color: var(--bronze-strong);
+  background: var(--bronze-strong);
+}
+
+[data-theme="inkstone"] .pillar-cell.pillar-day {
+  position: relative;
+  border-color: var(--bronze);
+  background: var(--surface-raised);
+  box-shadow: inset 0 2px 0 var(--bronze);
+}
+
+[data-theme="inkstone"] .pillar-cell.pillar-day::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--bronze);
+  box-shadow: 0 0 0 3px rgba(185, 160, 117, 0.1);
+}
+
+[data-theme="inkstone"] .markdown-body {
+  color: var(--ink-soft);
+  line-height: 1.82;
+}
+
+[data-theme="inkstone"] .markdown-body blockquote {
+  border-left-color: var(--bronze);
+  background: var(--bronze-soft);
+}
+
+[data-theme="inkstone"] .markdown-body code,
+[data-theme="inkstone"] .markdown-body pre {
+  color: var(--ink);
+  border-color: var(--line);
+  background: #11100e;
+}
+
+[data-theme="inkstone"] .markdown-body a,
+[data-theme="inkstone"] .chart-section-title strong,
+[data-theme="inkstone"] .pillar-cell.pillar-day strong {
+  color: var(--bronze-strong);
+}
+
+[data-theme="inkstone"] input:focus,
+[data-theme="inkstone"] textarea:focus,
+[data-theme="inkstone"] select:focus,
+[data-theme="inkstone"] .follow-row:focus-within {
+  border-color: var(--bronze);
+  box-shadow: var(--focus-ring);
+}
+
+[data-theme="inkstone"] ::selection {
+  color: var(--ink);
+  background: rgba(185, 160, 117, 0.32);
+}
+
+[data-theme="inkstone"] ::-webkit-scrollbar-thumb {
+  background: var(--line);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="inkstone"] .primary-button,
+  [data-theme="inkstone"] .composer-send,
+  [data-theme="inkstone"] .master-card,
+  [data-theme="inkstone"] .pillar-cell,
+  [data-theme="inkstone"] input,
+  [data-theme="inkstone"] textarea,
+  [data-theme="inkstone"] select {
+    transition: none;
+  }
+}
+
 .language-toggle {
   width: auto;
   min-width: 48px;
@@ -4207,4 +4387,3 @@ button:focus-visible,
     transform: none;
   }
 }
-

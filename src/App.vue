@@ -99,23 +99,32 @@ function toggleLocale() {
   document.documentElement.lang = locale.value;
 }
 
-type UiTheme = 'default' | 'ink';
+type UiTheme = 'default' | 'ink' | 'inkstone';
 const themeStorageKey = 'soothsay-theme';
 const uiTheme = ref<UiTheme>('default');
+const themeOrder: UiTheme[] = ['default', 'ink', 'inkstone'];
 
-// 应用外观主题：ink 挂 data-theme 属性驱动 CSS 覆写，default 移除；同步持久化
+const nextThemeLabel = computed<TranslationKey>(() => {
+  if (uiTheme.value === 'default') return 'theme.toInk';
+  if (uiTheme.value === 'ink') return 'theme.toInkstone';
+  return 'theme.toDefault';
+});
+
+// 应用外观主题：非默认主题通过 data-theme 驱动 CSS 覆写，并同步持久化用户选择。
 function applyTheme(next: UiTheme) {
   uiTheme.value = next;
-  if (next === 'ink') {
-    document.documentElement.setAttribute('data-theme', 'ink');
-  } else {
+  if (next === 'default') {
     document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', next);
   }
   window.localStorage.setItem(themeStorageKey, next);
 }
 
+// 按默认、纸墨、玄砚的顺序循环切换，保持单按钮操作简洁可预期。
 function toggleTheme() {
-  applyTheme(uiTheme.value === 'ink' ? 'default' : 'ink');
+  const currentIndex = themeOrder.indexOf(uiTheme.value);
+  applyTheme(themeOrder[(currentIndex + 1) % themeOrder.length]);
 }
 
 const personas = ref<PersonaSkin[]>([]);
@@ -1468,8 +1477,9 @@ async function removePersona(persona: PersonaSkin) {
 
 onMounted(async () => {
   locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey) ?? navigator.language);
-  if (window.localStorage.getItem(themeStorageKey) === 'ink') {
-    applyTheme('ink');
+  const savedTheme = window.localStorage.getItem(themeStorageKey);
+  if (savedTheme === 'ink' || savedTheme === 'inkstone') {
+    applyTheme(savedTheme);
   }
   loadRememberedAdminSession();
   document.documentElement.lang = locale.value;
@@ -1584,7 +1594,7 @@ onMounted(async () => {
             <Languages :size="20" aria-hidden="true" />
             <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
           </button>
-          <button class="icon-button theme-toggle" type="button" :title="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" :aria-label="t(uiTheme === 'ink' ? 'theme.toDefault' : 'theme.toInk')" @click="toggleTheme">
+          <button class="icon-button theme-toggle" type="button" :title="t(nextThemeLabel)" :aria-label="t(nextThemeLabel)" @click="toggleTheme">
             <Palette :size="20" aria-hidden="true" />
           </button>
         </div>
