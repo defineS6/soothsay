@@ -2092,14 +2092,28 @@ onMounted(async () => {
           <div v-if="chart" class="chart-content">
             <!-- 命盘主角区：四柱 + 五行统计 + 日主摘要 -->
             <div class="chart-hero">
-              <div class="pillar-grid">
-                <article v-for="pillar in pillarRows" :key="pillar.name" class="pillar-cell" :class="{ 'pillar-day': pillar.name === 'day' }">
-                  <span>{{ pillar.label }}</span>
-                  <strong>{{ pillar.ganZhi }}</strong>
-                  <small>{{ pillar.tenGodOfGan }} · {{ pillar.naYin }}</small>
-                  <small>藏干 {{ pillar.hiddenGan.join('、') }}</small>
-                  <small v-if="pillar.xunKong">空亡 {{ pillar.xunKong }}</small>
-                  <small v-if="pillar.shenSha?.length" class="pillar-shensha">神煞 {{ pillar.shenSha.join('、') }}</small>
+              <div class="pillar-grid" role="list" aria-label="四柱牌阵">
+                <article
+                  v-for="pillar in pillarRows"
+                  :key="pillar.name"
+                  class="pillar-cell"
+                  :class="{ 'pillar-day': pillar.name === 'day' }"
+                  role="listitem"
+                >
+                  <span class="pillar-label">{{ pillar.label }}</span>
+                  <div class="pillar-ganzhi" :aria-label="pillar.ganZhi">
+                    <strong class="pillar-gan">{{ pillar.gan }}</strong>
+                    <strong class="pillar-zhi">{{ pillar.zhi }}</strong>
+                  </div>
+                  <div class="pillar-meta">
+                    <small class="pillar-god">{{ pillar.tenGodOfGan }}</small>
+                    <small class="pillar-nayin">{{ pillar.naYin }}</small>
+                  </div>
+                  <div class="pillar-extra">
+                    <small>藏 {{ pillar.hiddenGan.join('') }}</small>
+                    <small v-if="pillar.xunKong">空 {{ pillar.xunKong }}</small>
+                    <small v-if="pillar.shenSha?.length" class="pillar-shensha">{{ pillar.shenSha.join(' ') }}</small>
+                  </div>
                 </article>
               </div>
               <div class="stats-grid">
