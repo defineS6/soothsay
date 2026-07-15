@@ -1455,9 +1455,9 @@ button:disabled {
   display: grid;
   height: 100%;
   min-height: 0;
-  /* 命盘略窄、解读略宽：解读成为视觉主舞台 */
-  grid-template-columns: minmax(340px, 0.85fr) minmax(440px, 1.15fr);
-  gap: 20px;
+  /* 命盘固定侧栏，解读弹性主舞台 */
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  gap: var(--space-xl);
   align-items: stretch;
   overflow: hidden;
 }
@@ -1499,13 +1499,22 @@ button:disabled {
   padding: var(--space-xl);
 }
 
+/* 侧栏命盘更紧凑；解读区略宽边距，阅读面更舒展 */
+.chart-panel {
+  padding: var(--space-lg);
+}
+
+.conversation-panel {
+  padding: var(--space-xl) var(--space-2xl);
+}
+
 .chart-master-strip {
   display: flex;
   flex: 0 0 auto;
   min-width: 0;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: var(--space-md);
+  padding: 10px 12px;
   border: 1px solid rgba(255, 253, 248, 0.5);
   border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.38);
@@ -1514,9 +1523,9 @@ button:disabled {
 }
 
 .chart-master-avatar {
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
   border: 2px solid rgba(255, 253, 248, 0.7);
   border-radius: var(--radius-pill);
   object-fit: cover;
@@ -1680,29 +1689,30 @@ button:focus-visible,
 .chart-hero {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  padding-bottom: var(--space-lg);
+  gap: var(--space-sm);
+  padding-bottom: var(--space-md);
   border-bottom: 1px solid var(--line-soft);
 }
 
 .chart-hero-summary {
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .pillar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .pillar-cell {
   display: flex;
-  min-height: 140px;
+  min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 14px;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 10px 8px 12px;
   border: 1px solid rgba(255, 253, 248, 0.5);
   border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.4);
@@ -1722,7 +1732,7 @@ button:focus-visible,
 
 .pillar-cell span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
 }
@@ -1730,38 +1740,40 @@ button:focus-visible,
 .pillar-cell strong {
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(26px, 2.4vw, 34px);
+  font-size: clamp(28px, 2.6vw, 36px);
   font-weight: 500;
   letter-spacing: 0.02em;
-  line-height: 1.05;
+  line-height: 1.02;
+  margin: 2px 0 4px;
 }
 
 .pillar-cell small {
   color: var(--muted);
-  line-height: 1.35;
+  font-size: 11px;
+  line-height: 1.3;
 }
 
 .pillar-shensha {
   display: -webkit-box;
   overflow: hidden;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .stats-grid span {
-  min-height: 34px;
-  padding: 8px;
+  min-height: 28px;
+  padding: 4px 2px;
   text-align: center;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--bg-soft);
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   box-shadow: var(--shadow-line);
 }
@@ -1770,10 +1782,72 @@ button:focus-visible,
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--space-md);
-  padding-top: var(--space-lg);
-  margin-top: 2px;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  margin-top: 0;
   border-top: 1px solid var(--line-soft);
+}
+
+/* 次要区块默认折叠：扫读侧栏，展开才看细节 */
+.chart-section-details {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.chart-section-details > summary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--weight-display);
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.chart-section-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.chart-section-details > summary::after {
+  content: "";
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform var(--dur-micro) var(--ease);
+  opacity: 0.7;
+}
+
+.chart-section-details[open] > summary::after {
+  transform: rotate(-135deg);
+  margin-top: 4px;
+}
+
+.chart-section-details > summary strong {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.chart-section-details .chart-section-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0 0 var(--space-md);
 }
 
 .chart-section-title {
@@ -1784,7 +1858,7 @@ button:focus-visible,
   gap: 10px;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: var(--weight-display);
   letter-spacing: 0.03em;
 }
@@ -1792,26 +1866,26 @@ button:focus-visible,
 .chart-section-title strong {
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .chart-mini-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
 }
 
 .chart-mini-item {
   display: flex;
   min-width: 0;
-  min-height: 48px;
+  min-height: 42px;
   flex-direction: column;
   justify-content: center;
-  gap: 3px;
-  padding: 8px 10px;
+  gap: 2px;
+  padding: 6px 8px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--bg-soft);
 }
 
@@ -1913,8 +1987,10 @@ button:focus-visible,
 .relation-list > span {
   display: grid;
   min-width: 0;
-  grid-template-columns: 48px 72px minmax(0, 1fr);
-  gap: 8px;
+  /* 侧栏宽度下改为「类型+柱」同行、描述换行，避免三列挤压 */
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
   align-items: center;
   padding: 8px 10px;
   border: 1px solid rgba(255, 253, 248, 0.5);
@@ -1923,9 +1999,15 @@ button:focus-visible,
   backdrop-filter: blur(10px) saturate(1.08);
   -webkit-backdrop-filter: blur(10px) saturate(1.08);
   color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   transition: background-color var(--dur-micro) var(--ease);
+}
+
+.relation-list > span > em {
+  grid-column: 1 / -1;
+  font-style: normal;
+  color: var(--ink-soft);
 }
 
 .relation-list > span:hover {
@@ -2055,11 +2137,14 @@ button:focus-visible,
   flex: 0 0 auto;
 }
 
-/* 主操作吸底：滚动时仍可发起解读 */
+/* 主操作吸底：完整解读为主，次操作收窄 */
 .chart-actions {
   position: sticky;
   bottom: 0;
   z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-sm);
   margin-top: auto;
   padding: var(--space-md) 0 2px;
   background: linear-gradient(
@@ -2072,13 +2157,21 @@ button:focus-visible,
   -webkit-backdrop-filter: blur(8px);
 }
 
+.chart-actions .primary-button,
+.chart-actions .secondary-button {
+  min-width: 0;
+  width: 100%;
+  padding-inline: 10px;
+  white-space: nowrap;
+}
+
 .chart-actions .primary-button {
-  min-width: 132px;
+  min-width: 0;
 }
 
 .lot-button {
   position: relative;
-  min-width: 112px;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   transform-origin: 50% 90%;
@@ -2182,7 +2275,7 @@ button:focus-visible,
   min-height: 0;
   flex-direction: column;
   flex: 1 1 auto;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   overflow: auto;
   padding-right: 2px;
   scroll-padding-bottom: 72px;
@@ -2327,7 +2420,7 @@ button:focus-visible,
   min-height: 0;
   max-height: none;
   overflow: auto;
-  padding: var(--space-xl) var(--space-xl);
+  padding: var(--space-2xl) clamp(var(--space-xl), 4vw, var(--space-3xl));
   border: 1px solid rgba(255, 253, 248, 0.5);
   border-radius: var(--radius-md);
   background: rgba(255, 253, 248, 0.42);
@@ -2337,17 +2430,17 @@ button:focus-visible,
 
 .answer-box p {
   max-width: var(--paragraph-max);
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-md);
   color: var(--ink-soft);
-  line-height: 1.78;
+  line-height: 1.82;
   white-space: pre-wrap;
 }
 
 /* 历史预览消息：压缩密度，不与正式解读抢戏 */
 .answer-box .chat-message {
   max-width: var(--paragraph-max);
-  margin: 0 0 14px;
-  padding: 10px 0;
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) 0;
   border-bottom: 1px solid var(--line-soft);
   font-size: 14px;
   line-height: 1.65;
@@ -2376,7 +2469,7 @@ button:focus-visible,
   max-width: var(--paragraph-max);
   color: var(--ink-soft);
   font-size: 16px;
-  line-height: 1.78;
+  line-height: 1.82;
 }
 
 .markdown-body h1,
@@ -2385,10 +2478,12 @@ button:focus-visible,
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  margin: 18px 0 8px;
+  margin: var(--space-xl) 0 var(--space-sm);
   color: var(--ink);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
   line-height: 1.35;
+  letter-spacing: var(--ls-heading);
 }
 
 .markdown-body h1:first-child,
@@ -2894,7 +2989,7 @@ button:focus-visible,
   }
 }
 
-/* 中宽屏：保留双栏，收紧间距与内边距 */
+/* 中宽屏：保留侧栏结构，仅收紧外壳与内边距 */
 @media (max-width: 1200px) and (min-width: 981px) {
   .app-shell {
     --shell-inline: 20px;
@@ -2902,13 +2997,16 @@ button:focus-visible,
   }
 
   .reading-stage {
-    grid-template-columns: minmax(300px, 0.9fr) minmax(360px, 1.1fr);
-    gap: 16px;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: var(--space-lg);
   }
 
-  .chart-panel,
+  .chart-panel {
+    padding: var(--space-md);
+  }
+
   .conversation-panel {
-    padding: var(--space-lg);
+    padding: var(--space-lg) var(--space-xl);
   }
 
   .top-actions-tools .text-trigger span {
@@ -3143,16 +3241,42 @@ button:focus-visible,
   .master-picker-grid,
   .master-rail,
   .form-grid,
-  .direct-bazi-fields .form-grid,
-  .pillar-grid,
-  .stats-grid,
-  .chart-mini-grid {
+  .direct-bazi-fields .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .strength-row,
-  .relation-list > span {
+  /* 移动端命盘：四柱 2×2，五行与要素保持可扫读栅格 */
+  .pillar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .chart-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-panel,
+  .conversation-panel {
+    padding: var(--space-lg);
+  }
+
+  .answer-box {
+    padding: var(--space-lg);
+  }
+
+  .chart-actions {
     grid-template-columns: 1fr;
+  }
+
+  .strength-row {
+    grid-template-columns: 1fr;
+  }
+
+  .relation-list > span {
+    grid-template-columns: auto auto;
   }
 
   .strength-row small {
@@ -3423,9 +3547,13 @@ button:focus-visible,
 
 /* 极淡砚石颗粒只提供材质感，不与正文争夺注意力。 */
 [data-theme="inkstone"] .scene-layer::after {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' seed='11'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
-  opacity: 0.16;
+  background:
+    radial-gradient(ellipse 55% 42% at 12% 8%, rgba(185, 160, 117, 0.1), transparent 62%),
+    radial-gradient(ellipse 48% 38% at 88% 92%, rgba(185, 160, 117, 0.07), transparent 68%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' seed='11'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+  opacity: 1;
   mix-blend-mode: soft-light;
+  animation: inkstone-ambient 14s ease-in-out infinite alternate;
 }
 
 [data-theme="inkstone"] .topbar,
@@ -3478,28 +3606,65 @@ button:focus-visible,
   color: var(--ink);
   border-color: var(--bronze);
   background: var(--bronze-soft);
-  box-shadow: inset 0 -2px 0 var(--bronze);
+  box-shadow:
+    inset 0 -2px 0 var(--bronze),
+    0 0 0 1px rgba(185, 160, 117, 0.12),
+    0 0 18px rgba(185, 160, 117, 0.08);
 }
 
+/* 主行动：哑光古铜印章，悬停微光，按下顿挫 */
 [data-theme="inkstone"] .primary-button,
 [data-theme="inkstone"] .composer-send {
+  position: relative;
   color: var(--bg);
   border-color: var(--bronze);
-  background: var(--bronze);
-  box-shadow: none;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 230, 0.16) 0%, transparent 42%),
+    var(--bronze);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 220, 0.22),
+    0 0 0 1px rgba(185, 160, 117, 0.12),
+    0 6px 18px rgba(0, 0, 0, 0.28);
+  transition:
+    transform 120ms var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
 }
 
 [data-theme="inkstone"] .primary-button:hover,
 [data-theme="inkstone"] .composer-send:hover:not(:disabled) {
   border-color: var(--bronze-strong);
-  background: var(--bronze-strong);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 230, 0.22) 0%, transparent 48%),
+    var(--bronze-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 220, 0.28),
+    0 0 0 1px rgba(204, 179, 132, 0.22),
+    0 0 22px rgba(185, 160, 117, 0.22),
+    0 8px 22px rgba(0, 0, 0, 0.32);
 }
 
+[data-theme="inkstone"] .primary-button:active:not(:disabled),
+[data-theme="inkstone"] .composer-send:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(20, 16, 10, 0.28),
+    0 0 0 1px rgba(185, 160, 117, 0.16);
+}
+
+/* 日柱：顶铜线 + 右上铜点微呼吸，点睛不抢正文 */
 [data-theme="inkstone"] .pillar-cell.pillar-day {
   position: relative;
   border-color: var(--bronze);
-  background: var(--surface-raised);
-  box-shadow: inset 0 2px 0 var(--bronze);
+  background:
+    linear-gradient(180deg, rgba(185, 160, 117, 0.1) 0%, transparent 34%),
+    var(--surface-raised);
+  box-shadow:
+    inset 0 2px 0 var(--bronze),
+    0 0 0 1px rgba(185, 160, 117, 0.08),
+    0 0 20px rgba(185, 160, 117, 0.06);
+  animation: inkstone-day-glow 5.5s ease-in-out infinite;
 }
 
 [data-theme="inkstone"] .pillar-cell.pillar-day::after {
@@ -3511,7 +3676,10 @@ button:focus-visible,
   height: 5px;
   border-radius: 50%;
   background: var(--bronze);
-  box-shadow: 0 0 0 3px rgba(185, 160, 117, 0.1);
+  box-shadow:
+    0 0 0 3px rgba(185, 160, 117, 0.12),
+    0 0 10px rgba(185, 160, 117, 0.45);
+  animation: inkstone-ember 2.8s ease-in-out infinite;
 }
 
 [data-theme="inkstone"] .markdown-body {
@@ -3542,7 +3710,58 @@ button:focus-visible,
 [data-theme="inkstone"] select:focus,
 [data-theme="inkstone"] .follow-row:focus-within {
   border-color: var(--bronze);
-  box-shadow: var(--focus-ring);
+  box-shadow:
+    var(--focus-ring),
+    0 0 16px rgba(185, 160, 117, 0.08);
+}
+
+/* 流式光标：古铜笔锋微光 */
+[data-theme="inkstone"] .caret {
+  background: var(--bronze-strong);
+  width: 2px;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(185, 160, 117, 0.45);
+}
+
+/* 大运展开：左侧铜批，低照度下仍可辨当前段 */
+[data-theme="inkstone"] .luck-cycle {
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease);
+}
+
+[data-theme="inkstone"] .luck-cycle[open] {
+  border-color: rgba(185, 160, 117, 0.48);
+  background: linear-gradient(90deg, rgba(185, 160, 117, 0.1) 0%, var(--surface) 20%);
+  box-shadow:
+    inset 3px 0 0 var(--bronze),
+    0 0 0 1px rgba(185, 160, 117, 0.08);
+}
+
+/* 次级按钮悬停：淡铜抬升，不抢主行动 */
+[data-theme="inkstone"] .secondary-button:hover,
+[data-theme="inkstone"] .ghost-button:hover,
+[data-theme="inkstone"] .icon-button:hover {
+  color: var(--ink);
+  border-color: rgba(185, 160, 117, 0.55);
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 1px rgba(185, 160, 117, 0.08);
+}
+
+/* 抽签中：铜环脉动，与默认 shake 叠加形成点睛反馈 */
+[data-theme="inkstone"] .lot-button.drawing {
+  color: var(--ink);
+  border-color: var(--bronze);
+  background: var(--surface-raised);
+  box-shadow:
+    0 0 0 1px rgba(185, 160, 117, 0.2),
+    0 0 18px rgba(185, 160, 117, 0.16);
+}
+
+[data-theme="inkstone"] .lot-button.drawing::after {
+  border-color: rgba(185, 160, 117, 0.55);
+  box-shadow: 0 0 12px rgba(185, 160, 117, 0.28);
 }
 
 /* 吸底操作区：覆盖默认奶油白渐变，融入玄砚面板底色 */
@@ -3567,15 +3786,73 @@ button:focus-visible,
   background-clip: padding-box;
 }
 
+/* 玄砚动效：极慢氛围 / 日柱呼吸 / 铜点余烬，均克制不刺眼 */
+@keyframes inkstone-ambient {
+  0% {
+    opacity: 0.9;
+    filter: brightness(0.96);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1.05);
+  }
+}
+
+@keyframes inkstone-day-glow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 2px 0 var(--bronze),
+      0 0 0 1px rgba(185, 160, 117, 0.08),
+      0 0 16px rgba(185, 160, 117, 0.04);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 0 var(--bronze-strong),
+      0 0 0 1px rgba(185, 160, 117, 0.16),
+      0 0 26px rgba(185, 160, 117, 0.12);
+  }
+}
+
+@keyframes inkstone-ember {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.94);
+    box-shadow:
+      0 0 0 3px rgba(185, 160, 117, 0.1),
+      0 0 6px rgba(185, 160, 117, 0.28);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 4px rgba(185, 160, 117, 0.16),
+      0 0 14px rgba(185, 160, 117, 0.55);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-theme="inkstone"] .primary-button,
   [data-theme="inkstone"] .composer-send,
   [data-theme="inkstone"] .master-card,
   [data-theme="inkstone"] .pillar-cell,
+  [data-theme="inkstone"] .luck-cycle,
   [data-theme="inkstone"] input,
   [data-theme="inkstone"] textarea,
   [data-theme="inkstone"] select {
     transition: none;
+  }
+
+  [data-theme="inkstone"] .scene-layer::after,
+  [data-theme="inkstone"] .pillar-cell.pillar-day,
+  [data-theme="inkstone"] .pillar-cell.pillar-day::after {
+    animation: none;
+  }
+
+  [data-theme="inkstone"] .primary-button:active:not(:disabled),
+  [data-theme="inkstone"] .composer-send:active:not(:disabled) {
+    transform: none;
   }
 }
 

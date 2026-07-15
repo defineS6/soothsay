@@ -2107,79 +2107,88 @@ onMounted(async () => {
               </div>
               <p class="note-line chart-hero-summary">日主 {{ chart.dayMaster.gan }}{{ chart.dayMaster.element }} · {{ formatLuckSummary(chart.luck) }}</p>
             </div>
-            <section class="chart-section">
-              <div class="chart-section-title">
+            <!-- 次要区块默认折叠：侧栏扫读，展开看细节 -->
+            <details class="chart-section-details">
+              <summary>
                 <span>命盘要素</span>
-              </div>
-              <div class="chart-mini-grid">
-                <span v-for="item in chartFactorRows" :key="item.label" class="chart-mini-item">
-                  <small>{{ item.label }}</small>
-                  <strong>{{ item.value }}</strong>
-                </span>
-              </div>
-              <div class="term-line">
-                <span>所在节气 {{ chart.birthSolarTerm?.current?.name ?? chart.birthSolarTerm?.note ?? '需出生时间' }}</span>
-                <span v-if="chart.birthSolarTerm?.current?.dateTime">{{ chart.birthSolarTerm.current.dateTime }}</span>
-                <span v-if="chart.birthSolarTerm?.next">下一节气 {{ chart.birthSolarTerm.next.name }} {{ chart.birthSolarTerm.next.dateTime }}</span>
-              </div>
-            </section>
-            <section v-if="chart.strength" class="chart-section">
-              <div class="chart-section-title">
-                <span>五行旺衰</span>
-                <strong>{{ chart.strength.dayMasterStrength.conclusion }}</strong>
-              </div>
-              <p class="note-line">
-                司令 {{ chart.strength.monthCommand.stem }}{{ chart.strength.monthCommand.level }} · 日主{{ chart.strength.dayMasterState }} · {{ chart.strength.dayMasterStrength.score }}分
-              </p>
-              <div class="strength-list">
-                <div v-for="item in strengthRows" :key="item.element" class="strength-row">
-                  <span>{{ item.element }}</span>
-                  <div class="strength-bar" aria-hidden="true">
-                    <i :style="{ width: `${item.percent}%` }"></i>
-                  </div>
-                  <small>{{ item.percent }}% · {{ item.energy }} · {{ item.state }}</small>
+              </summary>
+              <div class="chart-section-body">
+                <div class="chart-mini-grid">
+                  <span v-for="item in chartFactorRows" :key="item.label" class="chart-mini-item">
+                    <small>{{ item.label }}</small>
+                    <strong>{{ item.value }}</strong>
+                  </span>
+                </div>
+                <div class="term-line">
+                  <span>所在节气 {{ chart.birthSolarTerm?.current?.name ?? chart.birthSolarTerm?.note ?? '需出生时间' }}</span>
+                  <span v-if="chart.birthSolarTerm?.current?.dateTime">{{ chart.birthSolarTerm.current.dateTime }}</span>
+                  <span v-if="chart.birthSolarTerm?.next">下一节气 {{ chart.birthSolarTerm.next.name }} {{ chart.birthSolarTerm.next.dateTime }}</span>
                 </div>
               </div>
-            </section>
-            <section class="chart-section">
-              <div class="chart-section-title">
+            </details>
+            <details v-if="chart.strength" class="chart-section-details">
+              <summary>
+                <span>五行旺衰</span>
+                <strong>{{ chart.strength.dayMasterStrength.conclusion }}</strong>
+              </summary>
+              <div class="chart-section-body">
+                <p class="note-line">
+                  司令 {{ chart.strength.monthCommand.stem }}{{ chart.strength.monthCommand.level }} · 日主{{ chart.strength.dayMasterState }} · {{ chart.strength.dayMasterStrength.score }}分
+                </p>
+                <div class="strength-list">
+                  <div v-for="item in strengthRows" :key="item.element" class="strength-row">
+                    <span>{{ item.element }}</span>
+                    <div class="strength-bar" aria-hidden="true">
+                      <i :style="{ width: `${item.percent}%` }"></i>
+                    </div>
+                    <small>{{ item.percent }}% · {{ item.energy }} · {{ item.state }}</small>
+                  </div>
+                </div>
+              </div>
+            </details>
+            <details class="chart-section-details">
+              <summary>
                 <span>命局关系</span>
                 <strong>{{ chartRelationRows.length }}</strong>
+              </summary>
+              <div class="chart-section-body">
+                <div v-if="chartRelationRows.length" class="relation-list">
+                  <span v-for="item in chartRelationRows" :key="item.key">
+                    <strong>{{ item.type }}</strong>
+                    <small>{{ item.pillars }}</small>
+                    <em>{{ item.description }}</em>
+                  </span>
+                </div>
+                <p v-else class="note-line">未见明显干支关系。</p>
               </div>
-              <div v-if="chartRelationRows.length" class="relation-list">
-                <span v-for="item in chartRelationRows" :key="item.key">
-                  <strong>{{ item.type }}</strong>
-                  <small>{{ item.pillars }}</small>
-                  {{ item.description }}
-                </span>
-              </div>
-              <p v-else class="note-line">未见明显干支关系。</p>
-            </section>
-            <section class="chart-section">
-              <div class="chart-section-title">
+            </details>
+            <details class="chart-section-details" open>
+              <summary>
                 <span>大运流年</span>
                 <strong>{{ chart.luck.cycles.length }}</strong>
+              </summary>
+              <div class="chart-section-body">
+                <p v-if="!chart.luck.cycles.length" class="note-line">{{ chart.luck.unavailableReason ?? chart.luck.startAgeText }}</p>
+                <div v-else class="luck-list">
+                  <details v-for="cycle in chart.luck.cycles" :key="cycle.index" class="luck-cycle" :open="cycle.index === currentLuckIndex">
+                    <summary>
+                      <span>{{ cycle.ganZhi }}</span>
+                      <small>{{ formatLuckCycleRange(cycle) }}<template v-if="cycle.startSolarDateTime"> · 交运 {{ cycle.startSolarDateTime }}</template></small>
+                    </summary>
+                    <div class="liu-nian-grid">
+                      <span v-for="liuNian in cycle.liuNian ?? []" :key="`${cycle.index}-${liuNian.year}`">
+                        {{ liuNian.year }} {{ liuNian.ganZhi }}
+                        <small>{{ liuNian.age }}岁</small>
+                      </span>
+                    </div>
+                  </details>
+                </div>
+                <div v-if="chart.luck.minorLuck?.length" class="minor-luck-line">
+                  <span>小运</span>
+                  <small>{{ chart.luck.minorLuck.map((item) => `${item.year}${item.ganZhi}`).join('、') }}</small>
+                </div>
               </div>
-              <p v-if="!chart.luck.cycles.length" class="note-line">{{ chart.luck.unavailableReason ?? chart.luck.startAgeText }}</p>
-              <div v-else class="luck-list">
-                <details v-for="cycle in chart.luck.cycles" :key="cycle.index" class="luck-cycle" :open="cycle.index === currentLuckIndex">
-                  <summary>
-                    <span>{{ cycle.ganZhi }}</span>
-                    <small>{{ formatLuckCycleRange(cycle) }}<template v-if="cycle.startSolarDateTime"> · 交运 {{ cycle.startSolarDateTime }}</template></small>
-                  </summary>
-                  <div class="liu-nian-grid">
-                    <span v-for="liuNian in cycle.liuNian ?? []" :key="`${cycle.index}-${liuNian.year}`">
-                      {{ liuNian.year }} {{ liuNian.ganZhi }}
-                      <small>{{ liuNian.age }}岁</small>
-                    </span>
-                  </div>
-                </details>
-              </div>
-              <div v-if="chart.luck.minorLuck?.length" class="minor-luck-line">
-                <span>小运</span>
-                <small>{{ chart.luck.minorLuck.map((item) => `${item.year}${item.ganZhi}`).join('、') }}</small>
-              </div>
-            </section>
+            </details>
             <p v-for="note in chart.notes" :key="note" class="note-line">{{ note }}</p>
             <!-- 主操作沉底：完整解读优先 -->
             <div class="actions-row chart-actions">
