@@ -2092,7 +2092,8 @@ onMounted(async () => {
           <div v-if="chart" class="chart-content">
             <!-- 命盘主角区：四柱 + 五行统计 + 日主摘要 -->
             <div class="chart-hero">
-              <div class="pillar-grid" role="list" aria-label="四柱牌阵">
+              <!-- 四柱盘面：统一底板 + 四列竖排，干支为主、批注为辅 -->
+              <div class="pillar-board" role="list" aria-label="四柱">
                 <article
                   v-for="pillar in pillarRows"
                   :key="pillar.name"
@@ -2105,15 +2106,9 @@ onMounted(async () => {
                     <strong class="pillar-gan">{{ pillar.gan }}</strong>
                     <strong class="pillar-zhi">{{ pillar.zhi }}</strong>
                   </div>
-                  <div class="pillar-meta">
-                    <small class="pillar-god">{{ pillar.tenGodOfGan }}</small>
-                    <small class="pillar-nayin">{{ pillar.naYin }}</small>
-                  </div>
-                  <div class="pillar-extra">
-                    <small>藏 {{ pillar.hiddenGan.join('') }}</small>
-                    <small v-if="pillar.xunKong">空 {{ pillar.xunKong }}</small>
-                    <small v-if="pillar.shenSha?.length" class="pillar-shensha">{{ pillar.shenSha.join(' ') }}</small>
-                  </div>
+                  <small class="pillar-god">{{ pillar.tenGodOfGan }}</small>
+                  <small class="pillar-nayin">{{ pillar.naYin }}</small>
+                  <small class="pillar-hidden">{{ pillar.hiddenGan.join(' ') }}</small>
                 </article>
               </div>
               <div class="stats-grid">

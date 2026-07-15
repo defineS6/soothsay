@@ -1700,78 +1700,65 @@ button:focus-visible,
   line-height: 1.5;
 }
 
-/* 四柱牌阵：四竖牌并立，日柱略抬升突出命主 */
+/* 四柱盘面：一张底板四列，像传统排盘，不做成游戏卡 */
+.pillar-board,
 .pillar-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  align-items: end;
-  padding: 4px 2px 2px;
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 253, 248, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.5);
 }
 
 .pillar-cell {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 168px;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   gap: 0;
-  padding: 10px 4px 10px;
-  border: 1px solid rgba(255, 253, 248, 0.55);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.72) 0%, rgba(255, 253, 248, 0.38) 100%);
-  backdrop-filter: blur(10px) saturate(1.08);
-  -webkit-backdrop-filter: blur(10px) saturate(1.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 253, 248, 0.65),
-    rgba(20, 20, 19, 0.05) 0 6px 14px;
+  padding: 12px 6px 14px;
+  border: 0;
+  border-right: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   text-align: center;
-  transition:
-    border-color var(--dur-micro) var(--ease),
-    background-color var(--dur-micro) var(--ease),
-    box-shadow var(--dur-micro) var(--ease),
-    transform var(--dur-micro) var(--ease);
 }
 
-/* 日柱：抬高半级 + 顶墨线，命主之位 */
+.pillar-cell:last-child {
+  border-right: 0;
+}
+
+/* 日柱：底色微抬 + 顶墨线，不位移、不造独立卡片 */
 .pillar-cell.pillar-day {
-  min-height: 184px;
-  padding-top: 12px;
-  margin-bottom: 0;
-  border-color: var(--ink-soft);
-  background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.9) 0%, rgba(255, 253, 248, 0.55) 100%);
-  box-shadow:
-    inset 0 2px 0 var(--ink),
-    inset 0 1px 0 rgba(255, 253, 248, 0.8),
-    rgba(20, 20, 19, 0.1) 0 10px 20px;
-  transform: translateY(-6px);
+  background: rgba(255, 253, 248, 0.55);
+  box-shadow: inset 0 2px 0 var(--ink);
 }
 
 .pillar-label {
   display: block;
   width: 100%;
+  margin-bottom: 10px;
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   line-height: 1.2;
 }
 
-/* 天干 / 地支分两行大字，形成牌面主视觉 */
+/* 干支两字竖排居中，是整列唯一主角 */
 .pillar-ganzhi {
   display: flex;
-  flex: 1 1 auto;
-  min-height: 72px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  margin: 6px 0 8px;
-  padding: 4px 0;
+  gap: 2px;
+  margin: 0 0 12px;
 }
 
 .pillar-gan,
@@ -1779,15 +1766,14 @@ button:focus-visible,
   display: block;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(26px, 2.5vw, 34px);
+  font-size: clamp(28px, 2.8vw, 36px);
   font-weight: 500;
-  letter-spacing: 0.04em;
-  line-height: 1.05;
+  letter-spacing: 0.02em;
+  line-height: 1.08;
 }
 
 .pillar-cell.pillar-day .pillar-gan,
 .pillar-cell.pillar-day .pillar-zhi {
-  font-size: clamp(28px, 2.7vw, 36px);
   font-weight: 600;
 }
 
@@ -1795,50 +1781,35 @@ button:focus-visible,
   color: var(--ink-soft);
 }
 
-.pillar-meta {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 0 2px 6px;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.pillar-meta small,
-.pillar-extra small {
+.pillar-god,
+.pillar-nayin,
+.pillar-hidden {
   display: block;
   width: 100%;
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 11px;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .pillar-god {
-  color: var(--ink-soft) !important;
+  color: var(--ink-soft);
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 
-.pillar-extra {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  margin-top: 6px;
-  padding: 0 2px;
+.pillar-nayin {
+  margin-top: 2px;
 }
 
-.pillar-shensha {
-  display: -webkit-box !important;
-  overflow: hidden;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  white-space: normal !important;
+.pillar-hidden {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 10px;
+  letter-spacing: 0.02em;
 }
 
 .stats-grid {
@@ -3326,32 +3297,33 @@ button:focus-visible,
     grid-template-columns: 1fr;
   }
 
-  /* 移动端命盘：四柱 2×2 牌阵，日柱轻微抬升即可 */
+  /* 移动端：仍是一张盘面，2×2 切分 */
+  .pillar-board,
   .pillar-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-sm);
-    align-items: stretch;
-    padding: 2px 0 0;
   }
 
   .pillar-cell {
-    min-height: 148px;
-    padding: 10px 6px;
+    padding: 12px 8px 14px;
+    border-right: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .pillar-cell:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .pillar-cell:nth-child(n + 3) {
+    border-bottom: 0;
   }
 
   .pillar-cell.pillar-day {
-    min-height: 156px;
-    transform: translateY(-3px);
+    transform: none;
   }
 
   .pillar-gan,
   .pillar-zhi {
-    font-size: clamp(28px, 8vw, 34px);
-  }
-
-  .pillar-cell.pillar-day .pillar-gan,
-  .pillar-cell.pillar-day .pillar-zhi {
-    font-size: clamp(30px, 8.5vw, 36px);
+    font-size: clamp(30px, 9vw, 36px);
   }
 
   .stats-grid {
@@ -3674,7 +3646,6 @@ button:focus-visible,
 
 [data-theme="inkstone"] .master-card,
 [data-theme="inkstone"] .answer-box,
-[data-theme="inkstone"] .pillar-cell,
 [data-theme="inkstone"] .chart-master-strip,
 [data-theme="inkstone"] .relation-list > span,
 [data-theme="inkstone"] .follow-row,
@@ -3693,16 +3664,6 @@ button:focus-visible,
   border-color: var(--line);
   background: var(--surface);
   box-shadow: none;
-}
-
-/* 玄砚牌面：略抬明度与内高光，避免被通用 surface 规则压平 */
-[data-theme="inkstone"] .pillar-cell {
-  background:
-    linear-gradient(180deg, rgba(231, 225, 205, 0.06) 0%, transparent 42%),
-    var(--surface);
-  box-shadow:
-    inset 0 1px 0 rgba(231, 225, 205, 0.06),
-    rgba(0, 0, 0, 0.18) 0 8px 16px;
 }
 
 [data-theme="inkstone"] .master-card:hover,
@@ -3767,34 +3728,32 @@ button:focus-visible,
     0 0 0 1px rgba(185, 160, 117, 0.16);
 }
 
-/* 日柱：抬升牌位 + 顶铜线 + 右上铜点微呼吸 */
+/* 日柱：统一盘面内以顶铜线 + 淡铜底点睛，不做抬升卡 */
+[data-theme="inkstone"] .pillar-board,
+[data-theme="inkstone"] .pillar-grid {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+[data-theme="inkstone"] .pillar-cell {
+  border-right-color: var(--line);
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+}
+
 [data-theme="inkstone"] .pillar-cell.pillar-day {
   position: relative;
-  border-color: var(--bronze);
-  background:
-    linear-gradient(180deg, rgba(185, 160, 117, 0.12) 0%, transparent 36%),
-    var(--surface-raised);
-  box-shadow:
-    inset 0 2px 0 var(--bronze),
-    0 0 0 1px rgba(185, 160, 117, 0.08),
-    0 0 20px rgba(185, 160, 117, 0.06);
-  transform: translateY(-6px);
-  animation: inkstone-day-glow 5.5s ease-in-out infinite;
+  border-color: transparent;
+  background: rgba(185, 160, 117, 0.08);
+  box-shadow: inset 0 2px 0 var(--bronze);
+  transform: none;
+  animation: none;
 }
 
 [data-theme="inkstone"] .pillar-cell.pillar-day::after {
-  content: "";
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--bronze);
-  box-shadow:
-    0 0 0 3px rgba(185, 160, 117, 0.12),
-    0 0 10px rgba(185, 160, 117, 0.45);
-  animation: inkstone-ember 2.8s ease-in-out infinite;
+  content: none;
 }
 
 [data-theme="inkstone"] .markdown-body {
@@ -3821,12 +3780,12 @@ button:focus-visible,
   color: var(--bronze-strong);
 }
 
-[data-theme="inkstone"] .pillar-meta {
-  border-bottom-color: rgba(77, 71, 60, 0.55);
-}
-
 [data-theme="inkstone"] .pillar-zhi {
   color: var(--ink-soft);
+}
+
+[data-theme="inkstone"] .pillar-hidden {
+  border-top-color: var(--line);
 }
 
 [data-theme="inkstone"] input:focus,
@@ -3979,10 +3938,6 @@ button:focus-visible,
     transform: none;
   }
 
-  /* 日柱保留静态抬升，仅关闭呼吸动画 */
-  [data-theme="inkstone"] .pillar-cell.pillar-day {
-    transform: translateY(-6px);
-  }
 }
 
 .language-toggle {
@@ -4079,7 +4034,6 @@ button:focus-visible,
 
 [data-theme="ink"] .master-card,
 [data-theme="ink"] .answer-box,
-[data-theme="ink"] .pillar-cell,
 [data-theme="ink"] .chart-master-strip,
 [data-theme="ink"] .relation-list > span,
 [data-theme="ink"] .follow-row,
@@ -4223,31 +4177,30 @@ button:focus-visible,
   box-shadow: inset 0 1px 2px rgba(40, 16, 12, 0.22);
 }
 
-/* 二：日主之柱 —— 抬升牌位 + 顶朱线 + 右上方印 */
-[data-theme="ink"] .pillar-cell.pillar-day {
-  position: relative;
+/* 二：日主之柱 —— 盘面内顶朱线，不抬升、不造独立印卡 */
+[data-theme="ink"] .pillar-board,
+[data-theme="ink"] .pillar-grid {
   border-color: var(--line);
-  background: linear-gradient(180deg, rgba(163, 60, 44, 0.05) 0%, var(--surface) 30%);
-  box-shadow:
-    inset 0 2px 0 var(--cinnabar),
-    rgba(58, 44, 28, 0.08) 0 10px 18px;
-  transform: translateY(-6px);
+  background: var(--surface);
+  box-shadow: var(--paper-highlight);
 }
 
-/* 日柱右上朱印：空心方印 + 中心印泥点，如题款落章 */
+[data-theme="ink"] .pillar-cell {
+  border-right-color: var(--line-soft);
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-theme="ink"] .pillar-cell.pillar-day {
+  position: relative;
+  border-color: transparent;
+  background: linear-gradient(180deg, rgba(163, 60, 44, 0.05) 0%, transparent 42%);
+  box-shadow: inset 0 2px 0 var(--cinnabar);
+  transform: none;
+}
+
 [data-theme="ink"] .pillar-cell.pillar-day::after {
-  content: "";
-  position: absolute;
-  top: 7px;
-  right: 6px;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid var(--cinnabar);
-  border-radius: 1px;
-  background:
-    radial-gradient(circle at 50% 50%, var(--cinnabar) 0 1.5px, transparent 1.7px),
-    var(--cinnabar-soft);
-  opacity: 0.9;
+  content: none;
 }
 
 /* 三：当前大运以朱砂竖批 */
@@ -4327,17 +4280,17 @@ button:focus-visible,
 }
 
 /* 淡墨：十神/纳音/藏干等批注 */
-[data-theme="ink"] .pillar-meta small,
-[data-theme="ink"] .pillar-extra small {
+[data-theme="ink"] .pillar-nayin,
+[data-theme="ink"] .pillar-hidden {
   color: var(--ink-dan);
 }
 
 [data-theme="ink"] .pillar-god {
-  color: var(--ink-zhong) !important;
+  color: var(--ink-zhong);
 }
 
-[data-theme="ink"] .pillar-meta {
-  border-bottom-color: var(--line-soft);
+[data-theme="ink"] .pillar-hidden {
+  border-top-color: var(--line-soft);
 }
 
 /* 焦墨：各区块计数（关系数/大运数）—— 点睛之笔，提浓区别于标题 */
@@ -4403,31 +4356,20 @@ button:focus-visible,
   margin-left: auto;
 }
 
-/* 四柱牌阵：纸面硬朗，竖牌并立 */
+/* 四柱盘面：纸墨下保持整板，列间细线分隔 */
+[data-theme="ink"] .pillar-board,
 [data-theme="ink"] .pillar-grid {
-  gap: 8px;
-  background: transparent;
-  border: none;
-}
-
-[data-theme="ink"] .pillar-cell {
+  gap: 0;
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  box-shadow: var(--paper-highlight), var(--shadow-line);
-  transition:
-    border-color var(--dur-micro) var(--ease),
-    background-color var(--dur-micro) var(--ease),
-    box-shadow var(--dur-micro) var(--ease),
-    transform var(--dur-micro) var(--ease);
 }
 
 [data-theme="ink"] .pillar-cell:hover {
-  border-color: var(--ink-zhong);
   background: var(--surface-raised);
 }
 
 [data-theme="ink"] .pillar-cell.pillar-day:hover {
-  transform: translateY(-6px);
+  background: linear-gradient(180deg, rgba(163, 60, 44, 0.06) 0%, var(--surface-raised) 42%);
+  transform: none;
 }
 
 /* 命盘迷你项：纸片感 */
