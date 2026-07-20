@@ -48,8 +48,13 @@
   --radius-pill: 999px;
   /* 中性聚焦环（替代原暖棕强调色，回归 Claude 纯暖单色） */
   --focus-ring: 0 0 0 3px rgba(20, 20, 19, 0.12);
-  --shadow-soft: rgba(0, 0, 0, 0.1) 0 4px 16px 0;
+  /* 纸感阴影阶梯：线框 / 轻抬 / 柔影（避免厚重投影） */
   --shadow-line: rgba(209, 207, 197, 1) 0 0 0 1px;
+  --shadow-sm: rgba(20, 20, 19, 0.05) 0 1px 2px, rgba(20, 20, 19, 0.04) 0 2px 8px;
+  --shadow-soft: rgba(0, 0, 0, 0.1) 0 4px 16px 0;
+  --shadow-paper:
+    rgba(20, 20, 19, 0.05) 0 1px 2px,
+    rgba(20, 20, 19, 0.06) 0 8px 24px;
   --ease: cubic-bezier(0.165, 0.84, 0.44, 1);
   --font-display: "Iowan Old Style", "Palatino Linotype", "Songti SC", "SimSun", serif;
   --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -192,7 +197,7 @@ button:disabled {
   backdrop-filter: blur(24px) saturate(1.12);
   -webkit-backdrop-filter: blur(24px) saturate(1.12);
   box-shadow:
-    rgba(20, 20, 19, 0.08) 0 8px 32px,
+    var(--shadow-paper),
     inset 0 1px 0 rgba(255, 253, 248, 0.6);
 }
 
@@ -214,7 +219,8 @@ button:disabled {
     background-color var(--dur-micro) var(--ease),
     border-color var(--dur-micro) var(--ease),
     color var(--dur-micro) var(--ease),
-    box-shadow var(--dur-micro) var(--ease);
+    box-shadow var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
 }
 
 .brand-button {
@@ -329,6 +335,12 @@ button:disabled {
 .primary-button:hover {
   background: var(--ink-soft);
   border-color: var(--ink-soft);
+  box-shadow: rgba(20, 20, 19, 0.12) 0 3px 10px;
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: rgba(20, 20, 19, 0.06) 0 1px 3px;
 }
 
 .secondary-button,
@@ -337,10 +349,20 @@ button:disabled {
   color: var(--ink-soft);
   background: var(--surface);
   border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary-button:hover {
+  box-shadow: var(--shadow-sm);
 }
 
 .ghost-button {
   background: transparent;
+  box-shadow: none;
+}
+
+.ghost-button:hover {
+  box-shadow: none;
 }
 
 .toast {
@@ -355,7 +377,8 @@ button:disabled {
   color: var(--ink);
   background: var(--bg-soft);
   border: 1px solid var(--line);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-paper);
+  animation: fade-in var(--dur-small) var(--ease) both;
 }
 
 .modal-backdrop {
@@ -1047,7 +1070,7 @@ button:disabled {
   backdrop-filter: blur(24px) saturate(1.12);
   -webkit-backdrop-filter: blur(24px) saturate(1.12);
   box-shadow:
-    rgba(20, 20, 19, 0.08) 0 8px 32px,
+    var(--shadow-paper),
     inset 0 1px 0 rgba(255, 253, 248, 0.6);
 }
 
@@ -1270,6 +1293,21 @@ button:disabled {
   background: rgba(255, 253, 248, 0.4);
   backdrop-filter: blur(10px) saturate(1.08);
   -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 248, 0.4),
+    var(--shadow-sm);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+}
+
+.mobile-follow-card:focus-within {
+  border-color: rgba(255, 253, 248, 0.75);
+  background: rgba(255, 253, 248, 0.55);
+  box-shadow:
+    var(--focus-ring),
+    inset 0 1px 0 rgba(255, 253, 248, 0.55);
 }
 
 .mobile-follow-card input {
@@ -1407,11 +1445,14 @@ button:disabled {
   background: rgba(255, 253, 248, 0.5);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 248, 0.5),
+    var(--shadow-sm);
   transition:
     background-color var(--dur-micro) var(--ease),
     border-color var(--dur-micro) var(--ease),
-    box-shadow var(--dur-micro) var(--ease);
+    box-shadow var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
 }
 
 .master-card:hover,
@@ -1419,8 +1460,16 @@ button:disabled {
   border-color: rgba(255, 253, 248, 0.78);
   background: rgba(255, 253, 248, 0.7);
   box-shadow:
-    rgba(20, 20, 19, 0.1) 0 8px 28px,
+    var(--shadow-paper),
     inset 0 1px 0 rgba(255, 253, 248, 0.7);
+}
+
+.master-card:hover {
+  transform: translateY(-1px);
+}
+
+.master-card:active {
+  transform: translateY(0);
 }
 
 .master-card img {
@@ -1488,7 +1537,7 @@ button:disabled {
   backdrop-filter: blur(24px) saturate(1.12);
   -webkit-backdrop-filter: blur(24px) saturate(1.12);
   box-shadow:
-    rgba(20, 20, 19, 0.08) 0 8px 32px,
+    var(--shadow-paper),
     inset 0 1px 0 rgba(255, 253, 248, 0.6);
   animation: fade-in var(--dur-medium) var(--ease) both;
 }
@@ -2167,12 +2216,25 @@ button:focus-visible,
   line-height: 1.65;
 }
 
+/* 空状态：略宽行距 + 字阶收口，更像安静的纸上说明 */
+.empty-state {
+  font-size: var(--text-body);
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
 .privacy-line {
   padding: 10px 12px;
   border-radius: var(--radius-md);
   color: var(--ink-soft);
   background: var(--bg-soft);
   border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.35);
+}
+
+.note-line {
+  font-size: var(--text-caption);
+  line-height: 1.6;
 }
 
 .actions-row,
@@ -2266,7 +2328,9 @@ button:focus-visible,
   background: rgba(255, 253, 248, 0.38);
   backdrop-filter: blur(12px) saturate(1.08);
   -webkit-backdrop-filter: blur(12px) saturate(1.08);
-  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 248, 0.4),
+    var(--shadow-sm);
   transition:
     border-color var(--dur-micro) var(--ease),
     box-shadow var(--dur-micro) var(--ease),
@@ -2275,8 +2339,10 @@ button:focus-visible,
 
 .follow-row:focus-within {
   border-color: rgba(255, 253, 248, 0.75);
-  background: rgba(255, 253, 248, 0.52);
-  box-shadow: var(--focus-ring);
+  background: rgba(255, 253, 248, 0.58);
+  box-shadow:
+    var(--focus-ring),
+    inset 0 1px 0 rgba(255, 253, 248, 0.55);
 }
 
 .follow-row input {
@@ -2303,19 +2369,23 @@ button:focus-visible,
   border: 1px solid var(--ink);
   border-radius: var(--radius-md);
   background: var(--ink);
+  box-shadow: rgba(20, 20, 19, 0.08) 0 2px 6px;
   transition:
     transform 160ms var(--ease),
     background-color var(--dur-micro) var(--ease),
-    border-color var(--dur-micro) var(--ease);
+    border-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
 }
 
 .composer-send:hover:not(:disabled) {
   border-color: var(--ink-soft);
   background: var(--ink-soft);
+  box-shadow: rgba(20, 20, 19, 0.12) 0 3px 10px;
 }
 
 .composer-send:active:not(:disabled) {
   transform: translateY(1px);
+  box-shadow: rgba(20, 20, 19, 0.06) 0 1px 3px;
 }
 
 .composer-send svg {
@@ -2478,6 +2548,12 @@ button:focus-visible,
   background: rgba(255, 253, 248, 0.42);
   backdrop-filter: blur(14px) saturate(1.08);
   -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  /* 阅读面内阴影：轻微纸感下陷，托住长文 */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 248, 0.45),
+    inset 0 0 0 1px rgba(209, 207, 197, 0.12);
+  scroll-behavior: smooth;
+  scroll-padding-bottom: var(--space-xl);
 }
 
 .answer-box p {
@@ -2488,7 +2564,7 @@ button:focus-visible,
   white-space: pre-wrap;
 }
 
-/* 历史预览消息：压缩密度，不与正式解读抢戏 */
+/* 历史预览消息：压缩密度，不与正式解读抢戏；交错淡入不抢戏 */
 .answer-box .chat-message {
   max-width: var(--paragraph-max);
   margin: 0 0 var(--space-md);
@@ -2497,6 +2573,31 @@ button:focus-visible,
   font-size: 14px;
   line-height: 1.65;
   color: var(--ink-soft);
+  animation: fade-in var(--dur-small) var(--ease) both;
+}
+
+.answer-box .chat-message:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.answer-box .chat-message:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.answer-box .chat-message:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.answer-box .chat-message:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.answer-box .chat-message:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.answer-box .chat-message:nth-child(6) {
+  animation-delay: 200ms;
 }
 
 .answer-box .chat-message:last-child {
@@ -2510,6 +2611,11 @@ button:focus-visible,
 
 .answer-box p:last-child {
   margin-bottom: 0;
+}
+
+/* 正式解读流式区：淡入托住内容 */
+.answer-box .markdown-frame {
+  animation: fade-in var(--dur-small) var(--ease) both;
 }
 
 .markdown-frame,
@@ -2603,6 +2709,7 @@ button:focus-visible,
   border-left: 3px solid var(--ink);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: rgba(232, 230, 220, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.35);
   font-style: italic;
 }
 
@@ -2666,17 +2773,24 @@ button:focus-visible,
   margin-bottom: 8px;
 }
 
+/* 用户问句：轻底、弱边，退后一层 */
 .chat-user {
   padding: 10px 12px;
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
   background: var(--bg-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 253, 248, 0.35);
 }
 
+/* 大师回复：略亮卡面 + 线框，突出阅读主体 */
 .chat-assistant {
-  padding: 10px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius-md);
   background: var(--surface);
-  box-shadow: var(--shadow-line);
+  box-shadow:
+    var(--shadow-line),
+    var(--shadow-sm);
 }
 
 .caret {
@@ -2686,6 +2800,7 @@ button:focus-visible,
   margin-left: 3px;
   vertical-align: -0.15em;
   background: var(--ink);
+  border-radius: 1px;
   animation: blink 1s steps(2, start) infinite;
 }
 
@@ -3585,6 +3700,14 @@ button:focus-visible,
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+
+  /* 克制美化新增的位移动作一并降级 */
+  .master-card:hover,
+  .master-card:active,
+  .primary-button:active:not(:disabled),
+  .composer-send:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 /* ============================================================
@@ -3608,8 +3731,12 @@ button:focus-visible,
   --bronze-strong: #ccb384;
   --bronze-soft: rgba(185, 160, 117, 0.12);
   --focus-ring: 0 0 0 3px rgba(185, 160, 117, 0.24);
+  --shadow-sm: rgba(0, 0, 0, 0.18) 0 1px 2px, rgba(0, 0, 0, 0.14) 0 2px 8px;
   --shadow-soft: rgba(0, 0, 0, 0.32) 0 8px 24px 0;
   --shadow-line: rgba(185, 160, 117, 0.28) 0 0 0 1px;
+  --shadow-paper:
+    rgba(0, 0, 0, 0.22) 0 2px 6px,
+    rgba(0, 0, 0, 0.28) 0 10px 28px;
   --weight-display: 400;
   --ls-display: 0.02em;
 }
@@ -3993,6 +4120,7 @@ button:focus-visible,
   --cinnabar-bleed: rgba(163, 60, 44, 0.3);
   --focus-ring: 0 0 0 3px rgba(163, 60, 44, 0.2);
   /* 纸托阴影：柔而短，像叠纸而非浮窗 */
+  --shadow-sm: rgba(48, 36, 22, 0.05) 0 1px 2px, rgba(48, 36, 22, 0.04) 0 2px 6px;
   --shadow-soft: rgba(48, 36, 22, 0.1) 0 3px 14px 0, rgba(48, 36, 22, 0.04) 0 1px 2px 0;
   --shadow-line: rgba(110, 94, 70, 0.42) 0 0 0 1px;
   --shadow-paper: rgba(48, 36, 22, 0.06) 0 2px 8px 0, var(--shadow-line);
