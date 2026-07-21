@@ -99,16 +99,49 @@ function toggleLocale() {
   document.documentElement.lang = locale.value;
 }
 
-type UiTheme = 'default' | 'ink' | 'inkstone';
+type UiTheme = 'default' | 'ink' | 'inkstone' | 'mist' | 'dusk';
 const themeStorageKey = 'soothsay-theme';
 const uiTheme = ref<UiTheme>('default');
-const themeOrder: UiTheme[] = ['default', 'ink', 'inkstone'];
+const themeModalOpen = ref(false);
 
-const nextThemeLabel = computed<TranslationKey>(() => {
-  if (uiTheme.value === 'default') return 'theme.toInk';
-  if (uiTheme.value === 'ink') return 'theme.toInkstone';
-  return 'theme.toDefault';
-});
+// 主题列表：弹窗内展示名称、简介与色点预览
+const themeOptions: Array<{
+  id: UiTheme;
+  nameKey: TranslationKey;
+  descKey: TranslationKey;
+  swatches: [string, string, string];
+}> = [
+  {
+    id: 'default',
+    nameKey: 'theme.name.default',
+    descKey: 'theme.desc.default',
+    swatches: ['#faf9f5', '#e8e6dc', '#141413']
+  },
+  {
+    id: 'ink',
+    nameKey: 'theme.name.ink',
+    descKey: 'theme.desc.ink',
+    swatches: ['#efe7d6', '#fbf6eb', '#a33c2c']
+  },
+  {
+    id: 'inkstone',
+    nameKey: 'theme.name.inkstone',
+    descKey: 'theme.desc.inkstone',
+    swatches: ['#161513', '#26241f', '#b9a075']
+  },
+  {
+    id: 'mist',
+    nameKey: 'theme.name.mist',
+    descKey: 'theme.desc.mist',
+    swatches: ['#eef1f4', '#f7f9fb', '#5b7a8f']
+  },
+  {
+    id: 'dusk',
+    nameKey: 'theme.name.dusk',
+    descKey: 'theme.desc.dusk',
+    swatches: ['#f3ebe6', '#fbf6f2', '#8a5f73']
+  }
+];
 
 // 应用外观主题：非默认主题通过 data-theme 驱动 CSS 覆写，并同步持久化用户选择。
 function applyTheme(next: UiTheme) {
@@ -121,10 +154,14 @@ function applyTheme(next: UiTheme) {
   window.localStorage.setItem(themeStorageKey, next);
 }
 
-// 按默认、纸墨、玄砚的顺序循环切换，保持单按钮操作简洁可预期。
-function toggleTheme() {
-  const currentIndex = themeOrder.indexOf(uiTheme.value);
-  applyTheme(themeOrder[(currentIndex + 1) % themeOrder.length]);
+// 从弹窗选择主题：应用后关闭弹窗。
+function selectTheme(next: UiTheme) {
+  applyTheme(next);
+  themeModalOpen.value = false;
+}
+
+function isKnownTheme(value: string | null): value is UiTheme {
+  return themeOptions.some((item) => item.id === value);
 }
 
 const personas = ref<PersonaSkin[]>([]);
@@ -1478,7 +1515,7 @@ async function removePersona(persona: PersonaSkin) {
 onMounted(async () => {
   locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey) ?? navigator.language);
   const savedTheme = window.localStorage.getItem(themeStorageKey);
-  if (savedTheme === 'ink' || savedTheme === 'inkstone') {
+  if (isKnownTheme(savedTheme)) {
     applyTheme(savedTheme);
   }
   loadRememberedAdminSession();
@@ -1594,7 +1631,13 @@ onMounted(async () => {
             <Languages :size="20" aria-hidden="true" />
             <span>{{ locale === 'zh-CN' ? 'EN' : '中' }}</span>
           </button>
-          <button class="icon-button theme-toggle" type="button" :title="t(nextThemeLabel)" :aria-label="t(nextThemeLabel)" @click="toggleTheme">
+          <button
+            class="icon-button theme-toggle"
+            type="button"
+            :title="t('theme.picker')"
+            :aria-label="t('theme.picker')"
+            @click="themeModalOpen = true"
+          >
             <Palette :size="20" aria-hidden="true" />
           </button>
         </div>
@@ -1602,6 +1645,43 @@ onMounted(async () => {
     </header>
 
     <p v-if="appMessage" class="toast" role="status">{{ appMessage }}</p>
+
+    <div v-if="themeModalOpen" class="modal-backdrop" @click.self="themeModalOpen = false">
+      <section class="theme-modal" role="dialog" aria-modal="true" aria-labelledby="theme-modal-title">
+        <header class="modal-heading">
+          <div>
+            <h2 id="theme-modal-title">{{ t('theme.pickerTitle') }}</h2>
+            <p>{{ t('theme.pickerHint') }}</p>
+          </div>
+          <div class="modal-actions">
+            <button class="secondary-button" type="button" @click="themeModalOpen = false">{{ t('theme.close') }}</button>
+          </div>
+        </header>
+        <div class="theme-picker-grid" role="listbox" :aria-label="t('theme.pickerTitle')">
+          <button
+            v-for="item in themeOptions"
+            :key="item.id"
+            class="theme-option"
+            type="button"
+            role="option"
+            :aria-selected="uiTheme === item.id"
+            :class="{ active: uiTheme === item.id }"
+            @click="selectTheme(item.id)"
+          >
+            <span class="theme-swatches" aria-hidden="true">
+              <i v-for="(color, index) in item.swatches" :key="`${item.id}-${index}`" :style="{ background: color }" />
+            </span>
+            <span class="theme-option-copy">
+              <strong>{{ t(item.nameKey) }}</strong>
+              <small>{{ t(item.descKey) }}</small>
+            </span>
+            <span v-if="uiTheme === item.id" class="theme-option-check" aria-hidden="true">
+              <Check :size="16" />
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
 
     <div v-if="masterModalOpen" class="modal-backdrop" @click.self="masterModalOpen = false">
       <section class="master-modal" role="dialog" aria-modal="true" aria-labelledby="master-modal-title">
