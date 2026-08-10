@@ -4,6 +4,9 @@ import type { PropType } from 'vue';
 import {
   CalendarDays,
   Check,
+  Cloud,
+  CloudDownload,
+  CloudUpload,
   Copy,
   House,
   KeyRound,
@@ -29,6 +32,7 @@ import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, LuckCycle
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
 import { fetchPersonas } from '@/services/personas';
 import { streamFortuneReading, testCredentials } from '@/services/proxy';
+import { downloadSnapshot, testWebdavConnection, uploadSnapshot } from '@/services/webdav';
 import {
   createAdminPersona,
   deleteAdminPersona,
@@ -40,6 +44,14 @@ import {
   verifyAdmin
 } from '@/services/admin';
 import { clearCredentials, getCredentials, saveCredentials, validateCredentials } from '@/storage/credentials';
+import { themeStorageKey } from '@/storage/preferences';
+import {
+  DEFAULT_WEBDAV_PATH,
+  clearWebdavConfig,
+  getWebdavConfig,
+  saveWebdavConfig,
+  validateWebdavConfig
+} from '@/storage/webdav';
 import {
   appendRoleMessage,
   clearRoleHistory,
@@ -54,7 +66,7 @@ import {
   saveSharedChart,
   saveSharedFact
 } from '@/storage/indexed-db';
-import type { BirthProfile, ChatMessage, LocalCredentials, RoleHistory, SharedProfile } from '@/storage/types';
+import type { BirthProfile, ChatMessage, LocalCredentials, RoleHistory, SharedProfile, WebdavConfig } from '@/storage/types';
 import {
   type EngineId,
   type FortuneCategory,
@@ -100,7 +112,6 @@ function toggleLocale() {
 }
 
 type UiTheme = 'default' | 'ink' | 'inkstone' | 'mist' | 'dusk';
-const themeStorageKey = 'soothsay-theme';
 const uiTheme = ref<UiTheme>('default');
 const themeModalOpen = ref(false);
 
@@ -223,6 +234,18 @@ const credentialsDraft = reactive<LocalCredentials>({
 });
 const credentialsStatus = ref('');
 const testingCredentials = ref(false);
+
+// WebDAV 同步：配置存在本机 localStorage，密码不随备份上传
+const webdavDraft = reactive<WebdavConfig>({
+  url: '',
+  username: '',
+  password: '',
+  path: DEFAULT_WEBDAV_PATH
+});
+const webdavStatus = ref('');
+const webdavBusy = ref(false);
+const webdavLastSyncAt = ref('');
+const webdavLastSyncAction = ref<'upload' | 'download' | ''>('');
 
 const adminSession = reactive<AdminSession>({
   username: '',
@@ -443,6 +466,13 @@ const mobileChartHighlights = computed(() => {
   ];
 });
 const hasCredentials = computed(() => Boolean(credentialsDraft.baseUrl && credentialsDraft.apiKey && credentialsDraft.model));
+// 上次同步的时间与方向，用本机时区展示
+const webdavLastSyncLabel = computed(() => {
+  if (!webdavLastSyncAt.value) return '';
+  const time = new Date(webdavLastSyncAt.value);
+  if (Number.isNaN(time.getTime())) return '';
+  return `上次${webdavLastSyncAction.value === 'download' ? '下载' : '上传'}：${time.toLocaleString()}`;
+});
 const adminEditing = computed(() => Boolean(adminForm.id));
 const adminEngineDraftActive = computed(
   () => Boolean(adminEngineForm.id) && adminForm.engineId === adminEngineForm.id && !isBuiltinEngineId(adminForm.engineId)
@@ -1113,6 +1143,103 @@ function removeCredentials() {
   credentialsStatus.value = '凭据已从本机浏览器移除';
 }
 
+// 把本机保存的 WebDAV 配置回填到表单，并刷新上次同步信息
+function loadWebdavConfig() {
+  const config = getWebdavConfig();
+  webdavDraft.url = config.url;
+  webdavDraft.username = config.username;
+  webdavDraft.password = config.password;
+  webdavDraft.path = config.path;
+  webdavLastSyncAt.value = config.lastSyncAt ?? '';
+  webdavLastSyncAction.value = config.lastSyncAction ?? '';
+}
+
+// 测试与同步前的统一校验：不通过时把提示写进状态行并中止
+function ensureWebdavReady() {
+  const error = validateWebdavConfig(webdavDraft);
+  if (error) {
+    webdavStatus.value = error;
+    return false;
+  }
+  saveWebdavConfig(webdavDraft);
+  return true;
+}
+
+function persistWebdavConfig() {
+  if (!ensureWebdavReady()) return;
+  loadWebdavConfig();
+  webdavStatus.value = 'WebDAV 配置已保存到本机浏览器';
+}
+
+async function runWebdavTest() {
+  if (!ensureWebdavReady()) return;
+  webdavBusy.value = true;
+  webdavStatus.value = '';
+  try {
+    const result = await testWebdavConnection(webdavDraft);
+    webdavStatus.value = result.missingDirectory
+      ? '连接成功；备份目录尚未创建，首次上传时会自动新建'
+      : '连接成功，可以开始同步';
+  } catch (error: any) {
+    webdavStatus.value = error?.message ?? 'WebDAV 连接测试失败';
+  } finally {
+    webdavBusy.value = false;
+  }
+}
+
+// 上传：用本机数据整体覆盖云端备份文件
+async function uploadToWebdav() {
+  if (!ensureWebdavReady()) return;
+  if (!window.confirm('将用本机数据覆盖云端备份文件，云端原有内容会被替换。确定继续？')) return;
+  webdavBusy.value = true;
+  webdavStatus.value = '';
+  try {
+    const result = await uploadSnapshot(webdavDraft);
+    loadWebdavConfig();
+    webdavStatus.value = `上传成功：${result.profiles} 份生辰档案、${result.histories} 组对话，共 ${(result.bytes / 1024).toFixed(1)} KB`;
+    setMessage('已上传到 WebDAV');
+  } catch (error: any) {
+    webdavStatus.value = error?.message ?? 'WebDAV 上传失败';
+  } finally {
+    webdavBusy.value = false;
+  }
+}
+
+// 下载：用云端备份整体覆盖本机数据，完成后重新加载界面状态
+async function downloadFromWebdav() {
+  if (!ensureWebdavReady()) return;
+  if (!window.confirm('将用云端备份覆盖本机的命盘、生辰档案、对话记录与界面偏好，本机现有内容会丢失。确定继续？')) return;
+  webdavBusy.value = true;
+  webdavStatus.value = '';
+  try {
+    const result = await downloadSnapshot(webdavDraft);
+    await loadLocalState();
+    // 偏好已写回 localStorage，这里立即应用到当前界面
+    const restoredTheme = window.localStorage.getItem(themeStorageKey);
+    if (isKnownTheme(restoredTheme)) applyTheme(restoredTheme);
+    locale.value = normalizeLocale(window.localStorage.getItem(localeStorageKey));
+    document.documentElement.lang = locale.value;
+    loadWebdavConfig();
+    webdavStatus.value = `下载成功：已还原 ${result.profiles} 份生辰档案、${result.histories} 组对话`;
+    setMessage('已从 WebDAV 还原数据');
+  } catch (error: any) {
+    webdavStatus.value = error?.message ?? 'WebDAV 下载失败';
+  } finally {
+    webdavBusy.value = false;
+  }
+}
+
+function removeWebdavConfig() {
+  clearWebdavConfig();
+  webdavDraft.url = '';
+  webdavDraft.username = '';
+  webdavDraft.password = '';
+  webdavDraft.path = DEFAULT_WEBDAV_PATH;
+  webdavLastSyncAt.value = '';
+  webdavLastSyncAction.value = '';
+  webdavStatus.value = 'WebDAV 配置已从本机浏览器移除';
+}
+
 async function requestReading(task: FortuneTask, question?: string) {
   if (!chart.value || !selectedPersona.value) {
     setMessage('请先选择大师并生成命盘');
@@ -1519,6 +1646,7 @@ onMounted(async () => {
     applyTheme(savedTheme);
   }
   loadRememberedAdminSession();
+  loadWebdavConfig();
   document.documentElement.lang = locale.value;
   startOpeningAnimation();
   loading.value = true;
@@ -2382,6 +2510,58 @@ onMounted(async () => {
           </button>
         </div>
         <p v-if="credentialsStatus" class="note-line">{{ credentialsStatus }}</p>
+      </div>
+
+      <div class="panel settings-panel">
+        <div class="panel-title">
+          <Cloud :size="18" aria-hidden="true" />
+          <h2>WebDAV 同步</h2>
+        </div>
+        <label>
+          服务器地址
+          <input v-model="webdavDraft.url" type="url" placeholder="https://dav.jianguoyun.com/dav/" />
+        </label>
+        <label>
+          账号
+          <input v-model="webdavDraft.username" type="text" autocomplete="off" />
+        </label>
+        <label>
+          密码
+          <input v-model="webdavDraft.password" type="password" autocomplete="off" />
+        </label>
+        <label>
+          备份文件路径
+          <input v-model="webdavDraft.path" type="text" placeholder="soothsay/soothsay-backup.json" />
+        </label>
+        <p class="privacy-line">
+          同步生辰档案、命盘、对话记录与主题语言偏好；模型 key 不参与同步。WebDAV 账号密码仅保存在本机浏览器，请求时经服务端透传，不持久化、不记录。
+        </p>
+        <div class="actions-row">
+          <button class="primary-button" type="button" :disabled="webdavBusy" @click="persistWebdavConfig">
+            <Save :size="18" aria-hidden="true" />
+            保存
+          </button>
+          <button class="secondary-button" type="button" :disabled="webdavBusy" @click="runWebdavTest">
+            <RefreshCw :size="18" aria-hidden="true" />
+            测试连接
+          </button>
+          <button class="ghost-button" type="button" :disabled="webdavBusy" @click="removeWebdavConfig">
+            <Trash2 :size="18" aria-hidden="true" />
+            清除
+          </button>
+        </div>
+        <div class="actions-row">
+          <button class="primary-button" type="button" :disabled="webdavBusy" @click="uploadToWebdav">
+            <CloudUpload :size="18" aria-hidden="true" />
+            上传覆盖云端
+          </button>
+          <button class="secondary-button" type="button" :disabled="webdavBusy" @click="downloadFromWebdav">
+            <CloudDownload :size="18" aria-hidden="true" />
+            下载覆盖本机
+          </button>
+        </div>
+        <p v-if="webdavLastSyncLabel" class="note-line">{{ webdavLastSyncLabel }}</p>
+        <p v-if="webdavStatus" class="note-line">{{ webdavStatus }}</p>
       </div>
     </section>
 

@@ -177,3 +177,38 @@ export async function clearRoleHistory(personaId: string): Promise<void> {
 export function createMemoryWindow(history: RoleHistory, limit = 8): ChatMessage[] {
   return history.messages.slice(-limit);
 }
+
+/** 读取全部角色对话历史，供 WebDAV 备份打包时使用 */
+export async function getAllRoleHistories(): Promise<RoleHistory[]> {
+  const db = await openDb();
+  return requestToPromise<RoleHistory[]>(txStore(db, ROLE_STORE, 'readonly').getAll());
+}
+
+/**
+ * 用云端快照整体覆盖本地数据（WebDAV 下载还原时调用）。
+ * 三个 store 放在同一个事务里先清空再写入，避免中途失败留下半新半旧的数据。
+ */
+export async function replaceAllLocalData(data: {
+  sharedProfile: SharedProfile | null;
+  birthProfiles: BirthProfile[];
+  roleHistories: RoleHistory[];
+}): Promise<void> {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction([SHARED_STORE, BIRTH_STORE, ROLE_STORE], 'readwrite');
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
+
+    const sharedStore = transaction.objectStore(SHARED_STORE);
+    const birthStore = transaction.objectStore(BIRTH_STORE);
+    const roleStore = transaction.objectStore(ROLE_STORE);
+    sharedStore.clear();
+    birthStore.clear();
+    roleStore.clear();
+
+    if (data.sharedProfile) sharedStore.put({ ...data.sharedProfile, id: 'default' });
+    for (const profile of data.birthProfiles) birthStore.put(profile);
+    for (const history of data.roleHistories) roleStore.put(history);
+  });
+}

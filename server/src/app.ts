@@ -4,6 +4,7 @@ import { logger } from 'hono/logger';
 import { adminRoutes } from './admin/routes.js';
 import { personaRoutes } from './persona/routes.js';
 import { proxyRoutes } from './proxy/routes.js';
+import { webdavRoutes } from './webdav/routes.js';
 import { DATA_DIR } from './storage/paths.js';
 import { ensureRoleStore } from './storage/role-store.js';
 import { isPostgresEnabled, readPostgresUpload } from './storage/postgres.js';
@@ -57,6 +58,7 @@ export function createApp(options: CreateAppOptions = {}) {
 
   app.route('/api/admin', adminRoutes);
   app.route('/api', proxyRoutes);
+  app.route('/api', webdavRoutes);
   app.route('/api', personaRoutes);
   if (mountApiUploads) {
     app.use('/api/uploads/*', servePostgresUpload);

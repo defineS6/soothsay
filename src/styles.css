@@ -3059,6 +3059,18 @@ button:focus-visible,
   border-top: 1px solid var(--line-soft);
 }
 
+/* 设置页并列多块面板（凭据 / WebDAV 同步）时的纵向间距 */
+.single-panel > .settings-panel + .settings-panel {
+  margin-top: var(--space-lg);
+}
+
+/* 同一面板内相邻的操作行不再重复画分隔线 */
+.settings-panel .actions-row + .actions-row {
+  margin-top: 0;
+  padding-top: var(--space-sm);
+  border-top: none;
+}
+
 .admin-remember {
   margin-top: -4px;
 }
