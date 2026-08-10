@@ -10,7 +10,7 @@ Demo: [https://soothsay.onrender.com/](https://soothsay.onrender.com/)
 
 ## 中文
 
-当前版本：`0.2.1`
+当前版本：`0.2.2`
 
 Soothsay 是一个可自托管的命盘解读应用。它在浏览器本地完成生辰档案、命盘和对话记录管理，通过用户自带的模型凭据调用 LLM，并提供后台维护大师角色、角色提示词、头像、双端网页背景和自定义体系。
 
@@ -149,7 +149,7 @@ docker run -d \
 
 ## English
 
-Current version: `0.2.1`
+Current version: `0.2.2`
 
 Soothsay is a self-hostable Bazi chart and fortune-reading application. Birth profiles, charts, and conversation history are managed locally in the browser. Users connect their own LLM credentials, while deployers can manage guide personas, prompts, avatars, desktop/mobile page backgrounds, and custom interpretation systems from the admin panel.
 
