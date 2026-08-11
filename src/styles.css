@@ -1,15 +1,18 @@
 :root {
   color-scheme: light;
-  --bg: #faf9f5;
-  --bg-soft: #e8e6dc;
-  --surface: #fffdf8;
-  --surface-raised: #f7f5ef;
-  --ink: #141413;
-  --ink-soft: #30302e;
-  --muted: #87867f;
-  --line: rgba(209, 207, 197, 1);
-  --line-soft: rgba(209, 207, 197, 0.64);
-  --danger: #9f2f2f;
+  --bg: #f4f1e9;
+  --bg-soft: #e7e1d4;
+  --surface: #fbfaf6;
+  --surface-raised: #f6f1e8;
+  --ink: #191816;
+  --ink-soft: #48433d;
+  --muted: #8a8378;
+  --line: rgba(215, 208, 195, 1);
+  --line-soft: rgba(215, 208, 195, 0.68);
+  --danger: #8f3540;
+  --accent: #983b32;
+  --accent-strong: #7f3028;
+  --accent-soft: rgba(152, 59, 50, 0.1);
   /* 字号阶梯：display / heading / body / caption（对齐 Claude typography scale） */
   --text-display: clamp(32px, 7vw, 56px);
   --text-heading: 30px;
@@ -47,7 +50,7 @@
   --radius-lg: 12px;
   --radius-pill: 999px;
   /* 中性聚焦环（替代原暖棕强调色，回归 Claude 纯暖单色） */
-  --focus-ring: 0 0 0 3px rgba(20, 20, 19, 0.12);
+  --focus-ring: 0 0 0 3px rgba(152, 59, 50, 0.18);
   /* 纸感阴影阶梯：线框 / 轻抬 / 柔影（避免厚重投影） */
   --shadow-line: rgba(209, 207, 197, 1) 0 0 0 1px;
   --shadow-sm: rgba(20, 20, 19, 0.05) 0 1px 2px, rgba(20, 20, 19, 0.04) 0 2px 8px;
@@ -117,6 +120,326 @@ button:disabled {
   opacity: 0.55;
 }
 
+/* ============================================================
+   默认视觉升级：现代东方纸本
+   结构层对所有主题生效；默认皮肤以宣纸、松烟墨与朱砂批注建立品牌识别。
+   ============================================================ */
+
+/* 顶栏当前上下文：大师与生辰使用双行题签，工具区退后一级。 */
+.topbar .context-trigger {
+  min-height: 46px;
+  max-width: 238px;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 5px 11px 5px 8px;
+  border-color: var(--line-soft);
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.topbar .context-trigger-copy {
+  display: flex !important;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.topbar .context-trigger-copy small,
+.topbar .context-trigger-copy strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar .context-trigger-copy small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.topbar .context-trigger-copy strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.topbar .master-trigger > svg {
+  display: none;
+}
+
+.topbar .top-master-avatar {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+  background: var(--bg-soft);
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+
+.topbar .context-trigger > svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.topbar .top-actions-tools .text-trigger,
+.topbar .top-actions-tools .icon-button,
+.topbar .top-actions-system .icon-button {
+  color: var(--muted);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.topbar .top-actions-tools .text-trigger:hover,
+.topbar .top-actions-tools .icon-button:hover,
+.topbar .top-actions-system .icon-button:hover {
+  color: var(--ink);
+  border-color: var(--line-soft);
+  background: var(--surface-raised);
+}
+
+/* 默认主题减少玻璃感，更接近装裱后的纸页。 */
+:root:not([data-theme]) .scene-layer::after {
+  background:
+    linear-gradient(180deg, rgba(244, 241, 233, var(--scene-wash-top)), rgba(231, 225, 212, var(--scene-wash-bottom))),
+    linear-gradient(90deg, rgba(244, 241, 233, var(--scene-wash-side-start)), rgba(244, 241, 233, var(--scene-wash-side-end)));
+}
+
+:root:not([data-theme]) .topbar,
+:root:not([data-theme]) .panel,
+:root:not([data-theme]) .mobile-hero-card,
+:root:not([data-theme]) .mobile-card,
+:root:not([data-theme]) .mobile-bottom-tabs {
+  border-color: rgba(251, 250, 246, 0.72);
+  background: rgba(251, 250, 246, 0.78);
+  backdrop-filter: blur(20px) saturate(1.08);
+  -webkit-backdrop-filter: blur(20px) saturate(1.08);
+  box-shadow:
+    rgba(25, 24, 22, 0.05) 0 8px 26px,
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+:root:not([data-theme]) .chart-panel {
+  background: rgba(251, 250, 246, 0.86);
+}
+
+:root:not([data-theme]) .conversation-panel {
+  background: rgba(251, 250, 246, 0.8);
+}
+
+/* 朱砂只用在主操作与语义重点，不大面积铺色。 */
+:root:not([data-theme]) .primary-button {
+  color: #fbfaf6;
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  box-shadow: rgba(152, 59, 50, 0.2) 0 2px 8px;
+}
+
+:root:not([data-theme]) .primary-button:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  box-shadow: rgba(152, 59, 50, 0.28) 0 4px 12px;
+}
+
+:root:not([data-theme]) .primary-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: rgba(152, 59, 50, 0.14) 0 1px 4px;
+}
+
+:root:not([data-theme]) .composer-send {
+  color: #fbfaf6;
+  border-color: var(--accent-strong);
+  background: var(--accent);
+  box-shadow: rgba(152, 59, 50, 0.18) 0 2px 7px;
+}
+
+:root:not([data-theme]) .composer-send:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  box-shadow: rgba(152, 59, 50, 0.26) 0 3px 11px;
+}
+
+:root:not([data-theme]) .panel-title > svg {
+  color: var(--accent);
+}
+
+:root:not([data-theme]) .master-card.active {
+  box-shadow:
+    var(--shadow-paper),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 3px 0 0 var(--accent);
+}
+
+/* 四柱是命盘页视觉中心：放大干支，日柱用小面积印记点明日主。 */
+:root:not([data-theme]) .pillar-board,
+:root:not([data-theme]) .pillar-grid {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48) 0%, rgba(246, 241, 232, 0.54) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 1px 6px rgba(25, 24, 22, 0.04);
+}
+
+:root:not([data-theme]) .pillar-gan,
+:root:not([data-theme]) .pillar-zhi {
+  font-size: clamp(32px, 3vw, 40px);
+  line-height: 1.06;
+}
+
+:root:not([data-theme]) .pillar-cell.pillar-day {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, rgba(251, 250, 246, 0.5) 42%);
+  box-shadow:
+    inset 0 2px 0 var(--accent),
+    inset 0 -1px 0 rgba(25, 24, 22, 0.04);
+}
+
+:root:not([data-theme]) .pillar-cell.pillar-day::after {
+  content: "日主";
+  position: absolute;
+  top: 7px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: rgba(251, 250, 246, 0.76);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+:root:not([data-theme]) .luck-cycle[open] {
+  border-color: rgba(152, 59, 50, 0.34);
+  background: linear-gradient(90deg, var(--accent-soft) 0%, var(--surface) 18%);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* 解读区弱化聊天软件感：正式解读是一篇带大师题款的纸上文稿。 */
+.conversation-panel .reading-document {
+  position: relative;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding-left: 24px;
+}
+
+.conversation-panel .reading-document::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, var(--accent), var(--accent-soft) 68%, transparent 100%);
+}
+
+.conversation-panel .reading-document-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.conversation-panel .reading-document-head img {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.conversation-panel .reading-document-head div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.conversation-panel .reading-document-head span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.conversation-panel .reading-document-head strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--weight-display);
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root:not([data-theme]) .answer-box {
+  border-color: rgba(215, 208, 195, 0.54);
+  border-radius: var(--radius-sm);
+  background: rgba(251, 250, 246, 0.58);
+  backdrop-filter: blur(10px) saturate(1.04);
+  -webkit-backdrop-filter: blur(10px) saturate(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 0 1px rgba(215, 208, 195, 0.08);
+}
+
+.conversation-panel .markdown-body blockquote {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* 历史预览保留问答区分，但不再把大师回复做成独立气泡卡。 */
+.answer-box .chat-user {
+  margin-left: clamp(24px, 8%, 72px);
+  border-color: transparent;
+}
+
+.answer-box .chat-assistant {
+  padding: 12px 0 12px 16px;
+  border: 0;
+  border-left: 2px solid var(--accent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root:not([data-theme]) .mobile-bottom-tabs button.active {
+  color: var(--ink);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+@media (max-width: 700px) {
+  .conversation-panel .reading-document {
+    padding-left: 16px;
+  }
+
+  .conversation-panel .reading-document-head {
+    margin-bottom: var(--space-lg);
+  }
+
+  :root:not([data-theme]) .pillar-gan,
+  :root:not([data-theme]) .pillar-zhi {
+    font-size: clamp(30px, 9vw, 38px);
+  }
+}
+
 /* 克制滚动条：细暖灰轨道，不抢视觉，圆角胶囊 */
 *::-webkit-scrollbar {
   width: 10px;
@@ -3031,6 +3354,21 @@ button:focus-visible,
   overflow: auto;
 }
 
+/* 历史解读收口：题批文稿覆盖通用聊天卡片规则。 */
+.answer-box .chat-message {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.answer-box .chat-assistant {
+  padding: 12px 0 12px 16px;
+  border: 0;
+  border-left: 2px solid var(--accent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 /* 凭据 / 管理登录：窄栏居中，表单节奏统一 */
 .settings-panel,
 .admin-login {
@@ -3630,12 +3968,9 @@ button:focus-visible,
     margin: 0 auto;
     padding-bottom: 8px;
   }
-
-  .single-panel .panel,
-  .admin-grid .panel {
-    max-height: none;
-  }
-
+  .single-panel .panel,
+  .admin-grid .panel {    max-height: none;
+  }
   .master-picker-grid,
   .master-rail,
   .form-grid,
@@ -3966,6 +4301,12 @@ button:focus-visible,
   --bronze: #b9a075;
   --bronze-strong: #ccb384;
   --bronze-soft: rgba(185, 160, 117, 0.12);
+
+  --accent: var(--bronze);
+
+  --accent-strong: var(--bronze-strong);
+
+  --accent-soft: var(--bronze-soft);
   --focus-ring: 0 0 0 3px rgba(185, 160, 117, 0.24);
   --shadow-sm: rgba(0, 0, 0, 0.18) 0 1px 2px, rgba(0, 0, 0, 0.14) 0 2px 8px;
   --shadow-soft: rgba(0, 0, 0, 0.32) 0 8px 24px 0;
@@ -4179,12 +4520,9 @@ button:focus-visible,
 
 [data-theme="inkstone"] .luck-cycle[open] {
   border-color: rgba(185, 160, 117, 0.48);
-  background: linear-gradient(90deg, rgba(185, 160, 117, 0.1) 0%, var(--surface) 20%);
-  box-shadow:
-    inset 3px 0 0 var(--bronze),
-    0 0 0 1px rgba(185, 160, 117, 0.08);
-}
-
+  background: linear-gradient(90deg, rgba(185, 160, 117, 0.1) 0%, var(--surface) 20%);  box-shadow:
+    inset 3px 0 0 var(--bronze),    0 0 0 1px rgba(185, 160, 117, 0.08);
+}
 /* 次级按钮悬停：淡铜抬升，不抢主行动 */
 [data-theme="inkstone"] .secondary-button:hover,
 [data-theme="inkstone"] .ghost-button:hover,
@@ -4515,6 +4853,12 @@ button:focus-visible,
   --cinnabar: #a33c2c;
   --cinnabar-strong: #8a3225;
   --cinnabar-soft: rgba(163, 60, 44, 0.1);
+
+  --accent: var(--cinnabar);
+
+  --accent-strong: var(--cinnabar-strong);
+
+  --accent-soft: var(--cinnabar-soft);
   --cinnabar-bleed: rgba(163, 60, 44, 0.3);
   --focus-ring: 0 0 0 3px rgba(163, 60, 44, 0.2);
   /* 纸托阴影：柔而短，像叠纸而非浮窗 */
@@ -5080,12 +5424,9 @@ button:focus-visible,
   border-color: var(--danger);
   background: rgba(126, 47, 63, 0.08);
 }
-
-/* 焦点环归朱砂 */
-[data-theme="ink"] button:focus-visible,
-[data-theme="ink"] .master-card:focus-visible,
-[data-theme="ink"] .text-trigger:focus-visible,
-[data-theme="ink"] .birth-trigger:focus-visible,
+/* 焦点环归朱砂 */
+[data-theme="ink"] button:focus-visible,[data-theme="ink"] .master-card:focus-visible,
+[data-theme="ink"] .text-trigger:focus-visible,[data-theme="ink"] .birth-trigger:focus-visible,
 [data-theme="ink"] .icon-button:focus-visible {
   outline: 2px solid rgba(163, 60, 44, 0.5);
   outline-offset: 2px;
@@ -5416,6 +5757,12 @@ button:focus-visible,
   --mist: #5b7a8f;
   --mist-strong: #4a677a;
   --mist-soft: rgba(91, 122, 143, 0.12);
+
+  --accent: var(--mist);
+
+  --accent-strong: var(--mist-strong);
+
+  --accent-soft: var(--mist-soft);
   --focus-ring: 0 0 0 3px rgba(91, 122, 143, 0.22);
   --shadow-sm: rgba(26, 34, 44, 0.05) 0 1px 2px, rgba(26, 34, 44, 0.04) 0 2px 8px;
   --shadow-soft: rgba(26, 34, 44, 0.1) 0 4px 16px 0;
@@ -5559,12 +5906,9 @@ button:focus-visible,
   box-shadow:
     inset 0 2px 0 var(--mist),
     inset 0 -1px 0 rgba(26, 34, 44, 0.03);
-  transform: none;
-  animation: none;
-}
-
-[data-theme="mist"] .pillar-cell.pillar-day::after {
-  content: none;
+  transform: none;  animation: none;
+}
+[data-theme="mist"] .pillar-cell.pillar-day::after {  content: none;
 }
 
 [data-theme="mist"] .pillar-cell.pillar-day .pillar-gan,
@@ -5895,6 +6239,12 @@ button:focus-visible,
   --mauve: #8a5f73;
   --mauve-strong: #734d60;
   --mauve-soft: rgba(138, 95, 115, 0.12);
+
+  --accent: var(--mauve);
+
+  --accent-strong: var(--mauve-strong);
+
+  --accent-soft: var(--mauve-soft);
   --focus-ring: 0 0 0 3px rgba(138, 95, 115, 0.22);
   --shadow-sm: rgba(42, 34, 31, 0.05) 0 1px 2px, rgba(42, 34, 31, 0.04) 0 2px 8px;
   --shadow-soft: rgba(42, 34, 31, 0.1) 0 4px 16px 0;

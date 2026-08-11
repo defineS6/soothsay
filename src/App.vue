@@ -126,7 +126,7 @@ const themeOptions: Array<{
     id: 'default',
     nameKey: 'theme.name.default',
     descKey: 'theme.desc.default',
-    swatches: ['#faf9f5', '#e8e6dc', '#141413']
+    swatches: ['#f4f1e9', '#fbfaf6', '#983b32']
   },
   {
     id: 'ink',
@@ -1727,13 +1727,14 @@ onMounted(async () => {
           <button class="icon-button mobile-top-action" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
             <UserRound :size="20" aria-hidden="true" />
           </button>
-          <button class="text-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
+          <button class="text-trigger context-trigger master-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
             <UserRound :size="18" aria-hidden="true" />
-            <span>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</span>
+            <img v-if="selectedPersona" class="top-master-avatar" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
+            <span class="context-trigger-copy"><small>{{ t('nav.chooseMaster') }}</small><strong>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</strong></span>
           </button>
-          <button class="birth-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
+          <button class="birth-trigger context-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
             <CalendarDays :size="18" aria-hidden="true" />
-            <span>{{ birthTriggerLabel }}</span>
+            <span class="context-trigger-copy"><small>{{ t('nav.birthProfile') }}</small><strong>{{ birthTriggerLabel }}</strong></span>
           </button>
         </div>
         <!-- 工具：档案 / 历史 / 凭据 / 管理 -->
@@ -2450,7 +2451,11 @@ onMounted(async () => {
             <h2>{{ t('nav.reading') }}</h2>
           </div>
           <div class="answer-box">
-            <div v-if="streaming || readingText" class="markdown-frame">
+            <div v-if="streaming || readingText" class="markdown-frame reading-document">
+              <header class="reading-document-head">
+                <img v-if="selectedPersona" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
+                <div><span>{{ t('nav.reading') }}</span><strong>{{ selectedPersona?.name ?? t('home.masterFallback') }}</strong></div>
+              </header>
               <MarkdownRenderer :blocks="activeReadingBlocks" />
               <span v-if="streaming" class="caret markdown-caret"></span>
             </div>
