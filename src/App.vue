@@ -126,7 +126,7 @@ const themeOptions: Array<{
     id: 'default',
     nameKey: 'theme.name.default',
     descKey: 'theme.desc.default',
-    swatches: ['#f4f1e9', '#fbfaf6', '#983b32']
+    swatches: ['#f3ede2', '#fcfaf5', '#9f3a2f']
   },
   {
     id: 'ink',
@@ -1104,7 +1104,7 @@ async function removeFact(fact: string) {
 }
 
 function openSettings() {
-  activePanel.value = 'settings';
+  activePanel.value = activePanel.value === 'settings' ? 'reading' : 'settings';
 }
 
 async function persistCredentials() {
@@ -1729,7 +1729,7 @@ onMounted(async () => {
           </button>
           <button class="text-trigger context-trigger master-trigger" type="button" :title="t('nav.chooseMaster')" @click="masterModalOpen = true">
             <UserRound :size="18" aria-hidden="true" />
-            <img v-if="selectedPersona" class="top-master-avatar" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
+            <img v-if="selectedPersona" class="top-master-avatar" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
             <span class="context-trigger-copy"><small>{{ t('nav.chooseMaster') }}</small><strong>{{ selectedPersona?.name ?? t('nav.chooseMaster') }}</strong></span>
           </button>
           <button class="birth-trigger context-trigger" type="button" :title="t('nav.birthProfile')" @click="openBirthModal">
@@ -1747,10 +1747,16 @@ onMounted(async () => {
             <MessageCircle :size="18" aria-hidden="true" />
             <span>{{ t('nav.history') }} {{ historyMessages.length }}</span>
           </button>
-          <button class="icon-button" type="button" :title="t('nav.credentials')" @click="openSettings">
+          <button class="icon-button" :class="{ active: activePanel === 'settings' }" type="button" :title="t('nav.credentials')" @click="openSettings">
             <KeyRound :size="20" aria-hidden="true" />
           </button>
-          <button class="icon-button desktop-admin-action" type="button" :title="t('nav.admin')" @click="activePanel = 'admin'">
+          <button
+            class="icon-button desktop-admin-action"
+            :class="{ active: activePanel === 'admin' }"
+            type="button"
+            :title="t('nav.admin')"
+            @click="activePanel = activePanel === 'admin' ? 'reading' : 'admin'"
+          >
             <ShieldCheck :size="20" aria-hidden="true" />
           </button>
         </div>
@@ -2035,24 +2041,26 @@ onMounted(async () => {
               <input v-model="birthForm.isLeapMonth" type="checkbox" />
               闰月
             </label>
-            <label v-if="birthForm.calendarType !== 'bazi'">
-              出生地经度
-              <input v-model="longitudeDraft" type="number" step="0.0001" placeholder="例如 116.397" />
-            </label>
-            <label v-if="birthForm.calendarType !== 'bazi'">
-              子时规则
-              <select v-model="birthForm.ziHourPolicy">
-                <option value="lateZiNextDay">晚子时换日</option>
-                <option value="lateZiSameDay">晚子时不换日</option>
-              </select>
-            </label>
-            <label v-if="birthForm.calendarType !== 'bazi'">
-              起运基准
-              <select v-model="birthForm.luckTimeBasis">
-                <option value="clock">钟表时间（对齐常见排盘）</option>
-                <option value="trueSolar">真太阳时</option>
-              </select>
-            </label>
+            <div v-if="birthForm.calendarType !== 'bazi'" class="form-grid">
+              <label>
+                出生地经度
+                <input v-model="longitudeDraft" type="number" step="0.0001" placeholder="例如 116.397" />
+              </label>
+              <label>
+                子时规则
+                <select v-model="birthForm.ziHourPolicy">
+                  <option value="lateZiNextDay">晚子时换日</option>
+                  <option value="lateZiSameDay">晚子时不换日</option>
+                </select>
+              </label>
+              <label>
+                起运基准
+                <select v-model="birthForm.luckTimeBasis">
+                  <option value="clock">钟表时间（对齐常见排盘）</option>
+                  <option value="trueSolar">真太阳时</option>
+                </select>
+              </label>
+            </div>
             <div class="actions-row">
               <button class="primary-button" type="submit">
                 <Save :size="18" aria-hidden="true" />
@@ -2408,27 +2416,27 @@ onMounted(async () => {
               </div>
             </details>
             <p v-for="note in chart.notes" :key="note" class="note-line">{{ note }}</p>
-            <!-- 主操作沉底：完整解读优先 -->
-            <div class="actions-row chart-actions">
-              <button class="primary-button" type="button" :disabled="streaming" @click="requestReading('bazi_full')">
-                <Wand2 :size="18" aria-hidden="true" />
-                {{ t('home.fullReading') }}
-              </button>
-              <button class="secondary-button" type="button" :disabled="streaming" @click="requestReading('daily')">
-                <CalendarDays :size="18" aria-hidden="true" />
-                {{ t('home.dailyFortune') }}
-              </button>
-              <button
-                class="secondary-button lot-button"
-                type="button"
-                :class="{ drawing: drawingLot }"
-                :disabled="streaming || drawingLot"
-                @click="requestDailyLot"
-              >
-                <Sparkles :size="18" aria-hidden="true" />
-                {{ t('home.dailyLot') }}
-              </button>
-            </div>
+          </div>
+          <!-- 主操作沉底：完整解读优先 -->
+          <div v-if="chart" class="actions-row chart-actions">
+            <button class="primary-button" type="button" :disabled="streaming" @click="requestReading('bazi_full')">
+              <Wand2 :size="18" aria-hidden="true" />
+              {{ t('home.fullReading') }}
+            </button>
+            <button class="secondary-button" type="button" :disabled="streaming" @click="requestReading('daily')">
+              <CalendarDays :size="18" aria-hidden="true" />
+              {{ t('home.dailyFortune') }}
+            </button>
+            <button
+              class="secondary-button lot-button"
+              type="button"
+              :class="{ drawing: drawingLot }"
+              :disabled="streaming || drawingLot"
+              @click="requestDailyLot"
+            >
+              <Sparkles :size="18" aria-hidden="true" />
+              {{ t('home.dailyLot') }}
+            </button>
           </div>
           <div v-else class="empty-state chart-empty">
             <div class="chart-empty-icon" aria-hidden="true">
@@ -2452,10 +2460,10 @@ onMounted(async () => {
           </div>
           <div class="answer-box">
             <div v-if="streaming || readingText" class="markdown-frame reading-document">
-              <header class="reading-document-head">
-                <img v-if="selectedPersona" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
-                <div><span>{{ t('nav.reading') }}</span><strong>{{ selectedPersona?.name ?? t('home.masterFallback') }}</strong></div>
-              </header>
+              <header class="reading-document-head">
+                <img v-if="selectedPersona" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />
+                <div><span>{{ t('nav.reading') }}</span><strong>{{ selectedPersona?.name ?? t('home.masterFallback') }}</strong></div>
+              </header>
               <MarkdownRenderer :blocks="activeReadingBlocks" />
               <span v-if="streaming" class="caret markdown-caret"></span>
             </div>
