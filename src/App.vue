@@ -1852,7 +1852,8 @@ onMounted(async () => {
           >
             <img :src="persona.avatarUrl" :alt="persona.name" />
             <span class="master-name">{{ persona.name }}</span>
-            <span class="master-opening">{{ persona.opening }}</span>
+            <span v-if="persona.description" class="master-opening" :title="persona.description">{{ persona.description }}</span>
+            <span class="master-opening" :title="persona.opening">{{ persona.opening }}</span>
           </button>
           <p v-if="!personas.length" class="empty-state">还没有可选大师。</p>
         </div>
