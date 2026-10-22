@@ -746,7 +746,6 @@ input[type="file"] {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 0;
   gap: 14px;
   padding: 20px;
   border: 1px solid var(--line);
@@ -781,6 +780,7 @@ input[type="file"] {
 
 /* —— 左栏：命盘面板 —— */
 .chart-panel {
+  min-height: 0;
   padding: 0;
   gap: 0;
   overflow: hidden;
@@ -1387,6 +1387,7 @@ input[type="file"] {
 
 /* —— 右栏：解读与对话面板（去除套娃边框，居中舒适阅读） —— */
 .conversation-panel {
+  min-height: 0;
   padding: 0;
   gap: 0;
   overflow: hidden;
@@ -1708,14 +1709,18 @@ input[type="file"] {
 .single-panel:not(.admin-layout) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-auto-rows: max-content;
   gap: 20px;
+  align-items: start;
   align-content: start;
   max-width: 1080px;
 }
 
 .settings-panel,
 .admin-login {
+  flex: 0 0 auto;
   width: 100%;
+  height: auto;
   gap: 14px;
 }
 
@@ -3037,11 +3042,21 @@ input[type="file"] {
     min-height: 0;
   }
 
-  .single-panel,
+  .single-panel {
+    flex: 0 0 auto;
+    width: min(100%, 600px);
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+    padding-bottom: 8px;
+  }
+
   .single-panel:not(.admin-layout),
   .admin-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     width: min(100%, 600px);
-    grid-template-columns: 1fr;
   }
 
   .birth-modal-body,
