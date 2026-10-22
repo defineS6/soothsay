@@ -3040,13 +3040,16 @@ input[type="file"] {
   }
 
   .workspace.mobile-tab-chart,
-  .workspace.mobile-tab-reading {
+  .workspace.mobile-tab-reading,
+  .workspace.workspace-liuyao.mobile-tab-mine {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
   }
+
+  .workspace.workspace-liuyao.mobile-tab-mine .divination-switcher { display: none; }
 
   .reading-stage {
     display: flex;

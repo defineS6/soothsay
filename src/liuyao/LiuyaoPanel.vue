@@ -49,6 +49,11 @@ function generate() {
     if(values.value.length!==6) throw new Error('请从初爻开始完成六次起卦');
     const calendar=getCalendar();
     chart.value=enrichLiuyao(makeLiuyao(values.value,calendar.dayGanZhi[0]),calendar);
+    const duplicate=currentCase.value;
+    if (duplicate && duplicate.question===question.value.trim() && duplicate.dateTime===dateTime.value && duplicate.values.every((value,index)=>value===values.value[index])) {
+      error.value='当前卦已保存，无需重复排盘';
+      return;
+    }
     const item: CaseRecord={ id:crypto.randomUUID(),question:question.value.trim(),dateTime:dateTime.value,values:[...values.value],chart:chart.value,reading:'' };
     records.value=[item,...records.value].slice(0,100);
     selectedId.value=item.id;
@@ -57,6 +62,12 @@ function generate() {
     save();
     error.value='';
   } catch(e) { error.value=e instanceof Error?e.message:'排盘失败'; }
+}
+function deleteCase(item: CaseRecord) {
+  if (!window.confirm(`删除占问记录「${item.question || item.chart.primary}」？`)) return;
+  records.value=records.value.filter(record=>record.id!==item.id);
+  if(selectedId.value===item.id) clear();
+  save();
 }
 function selectCase(item: CaseRecord) {
   selectedId.value=item.id;question.value=item.question;dateTime.value=item.dateTime;
@@ -92,7 +103,7 @@ async function ask(follow=false) {
 
 <template>
   <section class="liuyao-panel" :class="`liuyao-view-${mobileTab || 'chart'}`">
-    <header class="liuyao-heading"><div><h2>六爻纳甲</h2><p>三枚铜钱 · 京房八宫 · 本地起盘</p></div><button class="secondary-button" type="button" @click="clear">新起一卦</button></header>
+    <header v-if="mobileTab !== 'mine'" class="liuyao-heading"><div><h2>六爻纳甲</h2><p>三枚铜钱 · 京房八宫 · 本地起盘</p></div><button class="secondary-button" type="button" @click="clear">新起一卦</button></header>
     <div class="liuyao-layout">
       <div class="liuyao-card liuyao-input-card">
         <label>占问之事<textarea v-model="question" rows="2" placeholder="例如：近期的合作是否顺利？" /></label>
@@ -123,16 +134,23 @@ async function ask(follow=false) {
           </div>
           <div v-if="chart.hidden.length" class="liuyao-toss-list"><strong>伏神 / 飞神</strong><span v-for="item in chart.hidden" :key="item.relative">{{ item.relative }} {{ item.stem }}{{ item.branch }} 伏于第{{ item.index }}爻（飞神 {{ item.flyingBranch }}）</span></div>
           <small>规则版本 {{ chart.ruleVersion }}。月建按节气月，空亡按日旬；旺衰及用神取舍仍由解读层给出。</small>
-          <div class="liuyao-controls"><button class="primary-button" type="button" :disabled="busy" @click="ask(false)">{{ busy?'解读中…':'请大师解卦' }}</button></div>
-          <p v-if="reading" class="liuyao-reading">{{ reading }}</p>
-          <div v-if="history.length" class="liuyao-follow"><input v-model="followUp" placeholder="继续追问本卦…" @keyup.enter="ask(true)" /><button class="secondary-button" type="button" :disabled="busy||!followUp.trim()" @click="ask(true)">追问</button></div>
+
         </template>
         <p v-else>完成六次起卦后，可以在这里查看本卦、变卦与装卦结果。</p>
       </div>
     </div>
-    <details class="liuyao-card liuyao-history-card"><summary>本地占问记录（{{ records.length }}）</summary>
-      <div class="liuyao-records"><button v-for="item in records" :key="item.id" class="secondary-button" type="button" @click="selectCase(item)">{{ item.chart.primary }} · {{ item.question||'未命名占问' }} · {{ item.dateTime.replace('T',' ') }}</button></div>
-    </details>
+    <section class="liuyao-card liuyao-reading-card">
+      <h3>AI 大师解读</h3>
+      <p v-if="chart">{{ chart.primary }} · {{ question || '未命名占问' }}</p>
+      <p v-else>请先在排盘页起卦。</p>
+      <div v-if="chart" class="liuyao-controls"><button class="primary-button" type="button" :disabled="busy" @click="ask(false)">{{ busy?'解读中…':'请大师解卦' }}</button></div>
+      <p v-if="reading" class="liuyao-reading">{{ reading }}</p>
+      <div v-if="chart && history.length" class="liuyao-follow"><input v-model="followUp" placeholder="继续追问本卦…" @keyup.enter="ask(true)" /><button class="secondary-button" type="button" :disabled="busy||!followUp.trim()" @click="ask(true)">追问</button></div>
+    </section>
+    <section class="liuyao-card liuyao-history-card"><h3>六爻占问案例（{{ records.length }}）</h3>
+      <p v-if="!records.length">暂无占问记录。</p>
+      <div class="liuyao-records"><div v-for="item in records" :key="item.id" class="liuyao-record-row"><button class="secondary-button" type="button" @click="selectCase(item)">{{ item.chart.primary }} · {{ item.question||'未命名占问' }} · {{ item.dateTime.replace('T',' ') }}</button><button class="secondary-button" type="button" @click="deleteCase(item)">删除</button></div></div>
+    </section>
   </section>
 </template>
 
@@ -148,7 +166,8 @@ async function ask(follow=false) {
 .liuyao-lines{display:grid;gap:9px}.liuyao-line{display:grid;grid-template-columns:38px 44px 1fr 105px 22px minmax(100px,1fr) minmax(80px,1fr);gap:6px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--line-soft)}
 .liuyao-line b{font-family:serif;white-space:nowrap}.liuyao-line em{font-style:normal;color:var(--accent)}
 .liuyao-reading{white-space:pre-wrap;line-height:1.8}.liuyao-follow{display:flex;gap:8px}.liuyao-error{color:#b42318!important}
-.liuyao-records button{text-align:left}
+.liuyao-records button{text-align:left}.liuyao-record-row{display:flex;gap:8px;min-width:0}.liuyao-record-row button:first-child{flex:1;min-width:0;overflow-wrap:anywhere}.liuyao-reading-card{min-width:0}
 @media(max-width:760px){.liuyao-layout{grid-template-columns:1fr}.liuyao-panel{padding:0 4px 16px;max-width:100%;margin:8px auto}.liuyao-card{padding:14px}.liuyao-line{grid-template-columns:30px 38px minmax(0,1fr) 70px 16px;font-size:12px;gap:3px}.liuyao-line small:nth-last-child(-n+2){grid-column:3/-1}.liuyao-line b{font-size:11px}.liuyao-heading{flex-wrap:wrap}.liuyao-card textarea,.liuyao-card input{min-width:0}.liuyao-primary-actions{top:0}.liuyao-primary-actions button{min-width:0}}
-@media(max-width:900px){.liuyao-panel{width:100%;max-width:100%;margin:0;overflow-y:auto;min-height:0;padding-bottom:100px}.liuyao-view-chart .liuyao-result-card{display:none}.liuyao-view-reading .liuyao-input-card,.liuyao-view-reading .liuyao-history-card{display:none}.liuyao-view-reading .liuyao-layout{grid-template-columns:1fr}.liuyao-view-reading .liuyao-result-card{min-height:60vh}}
+@media(min-width:901px){.liuyao-reading-card{grid-column:1/-1}.liuyao-history-card{display:none}}
+@media(max-width:900px){.liuyao-panel{width:100%;max-width:100%;margin:0;overflow-y:auto;min-height:0;padding-bottom:100px}.liuyao-layout{grid-template-columns:1fr}.liuyao-view-chart .liuyao-reading-card,.liuyao-view-chart .liuyao-history-card{display:none}.liuyao-view-reading .liuyao-layout,.liuyao-view-reading .liuyao-history-card{display:none}.liuyao-view-mine .liuyao-layout,.liuyao-view-mine .liuyao-reading-card{display:none}.liuyao-view-mine{padding-top:12px}.liuyao-view-reading .liuyao-reading-card{min-height:50vh}}
 </style>

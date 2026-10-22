@@ -2303,7 +2303,7 @@ onMounted(async () => {
       </section>
     </section>
 
-    <section v-if="activePanel === 'reading'" class="workspace" :class="`mobile-tab-${mobileTab}`">
+    <section v-if="activePanel === 'reading'" class="workspace" :class="[`mobile-tab-${mobileTab}`, { 'workspace-liuyao': divinationMode === 'liuyao' }]">
       <div class="divination-switcher" role="group" aria-label="选择排盘术数">
         <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">八字命理</button>
         <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">六爻纳甲</button>
