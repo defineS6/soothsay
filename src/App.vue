@@ -27,6 +27,7 @@ import {
   Wand2
 } from 'lucide-vue-next';
 import { createBaziChart } from '@/bazi/engine';
+import LiuyaoPanel from '@/liuyao/LiuyaoPanel.vue';
 import { localeStorageKey, normalizeLocale, translate, type Locale, type TranslationKey } from '@/i18n';
 import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, LuckCycle, PillarName } from '@/bazi/types';
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
@@ -75,7 +76,7 @@ import {
   isBuiltinEngineId
 } from '@server-shared/persona';
 
-type Panel = 'reading' | 'settings' | 'admin';
+type Panel = 'reading' | 'liuyao' | 'settings' | 'admin';
 type CropField = 'avatarFile' | 'backgroundFile' | 'mobileBackgroundFile';
 type MobileTab = 'home' | 'chart' | 'reading' | 'mine';
 type MarkdownInline = {
@@ -1737,6 +1738,7 @@ onMounted(async () => {
             <span class="context-trigger-copy"><small>{{ t('nav.birthProfile') }}</small><strong>{{ birthTriggerLabel }}</strong></span>
           </button>
         </div>
+        <button class="text-trigger" type="button" :class="{ active: activePanel === 'liuyao' }" @click="activePanel = activePanel === 'liuyao' ? 'reading' : 'liuyao'">六爻纳甲</button>
         <!-- 工具：档案 / 历史 / 凭据 / 管理 -->
         <div class="top-actions-group top-actions-tools">
           <button class="text-trigger" type="button" :title="t('nav.profile')" @click="profileModalOpen = true">
@@ -1933,7 +1935,7 @@ onMounted(async () => {
         </header>
 
         <div class="birth-modal-body">
-          <aside class="birth-profile-list" aria-label="生辰档案列表">
+          <aside class="birth-profile-list" :class="{ 'is-empty': !birthProfiles.length }" aria-label="生辰档案列表">
             <div class="birth-list-heading">
               <span>档案 {{ birthProfiles.length }}</span>
               <button class="secondary-button" type="button" @click="resetBirthDraft">新建</button>
@@ -1964,104 +1966,102 @@ onMounted(async () => {
           </aside>
 
           <form class="birth-editor" @submit.prevent="submitBirthForm">
-            <div class="panel-title">
-              <CalendarDays :size="18" aria-hidden="true" />
-              <h2>{{ editingBirthProfileId ? '编辑生辰' : '新建生辰' }}</h2>
-            </div>
-            <label>
-              档案名称
-              <input v-model.trim="birthProfileName" type="text" maxlength="30" placeholder="例如 自己 / 家人 / 客户A" />
-            </label>
-            <div class="segmented">
-              <button type="button" :class="{ active: birthForm.calendarType === 'solar' }" @click="birthForm.calendarType = 'solar'">
-                公历
-              </button>
-              <button type="button" :class="{ active: birthForm.calendarType === 'lunar' }" @click="birthForm.calendarType = 'lunar'">
-                农历
-              </button>
-              <button type="button" :class="{ active: birthForm.calendarType === 'bazi' }" @click="birthForm.calendarType = 'bazi'">
-                四柱
-              </button>
-            </div>
-            <div v-if="birthForm.calendarType !== 'bazi'" class="form-grid">
+            <div class="birth-editor-fields">
               <label>
-                年
-                <input v-model.number="birthForm.year" type="number" min="1" required />
+                档案名称
+                <input v-model.trim="birthProfileName" type="text" maxlength="30" placeholder="例如 自己 / 家人 / 客户A" />
               </label>
-              <label>
-                月
-                <input v-model.number="birthForm.month" type="number" min="1" max="12" required />
-              </label>
-              <label>
-                日
-                <input v-model.number="birthForm.day" type="number" min="1" max="31" required />
-              </label>
-              <label>
-                时
-                <input v-model.number="birthForm.hour" type="number" min="0" max="23" required />
-              </label>
-              <label>
-                分
-                <input v-model.number="birthForm.minute" type="number" min="0" max="59" required />
-              </label>
-              <label>
-                性别
-                <select v-model="birthForm.gender">
-                  <option value="female">女</option>
-                  <option value="male">男</option>
-                </select>
-              </label>
-            </div>
-            <div v-else class="direct-bazi-fields">
-              <label>
-                粘贴四柱
-                <input v-model="directPillarsText" type="text" placeholder="例如 甲子 乙丑 丙寅 丁卯" @blur="applyDirectPillarsText" />
-              </label>
-              <div class="form-grid">
+              <div class="segmented">
+                <button type="button" :class="{ active: birthForm.calendarType === 'solar' }" @click="birthForm.calendarType = 'solar'">
+                  公历
+                </button>
+                <button type="button" :class="{ active: birthForm.calendarType === 'lunar' }" @click="birthForm.calendarType = 'lunar'">
+                  农历
+                </button>
+                <button type="button" :class="{ active: birthForm.calendarType === 'bazi' }" @click="birthForm.calendarType = 'bazi'">
+                  四柱
+                </button>
+              </div>
+              <div v-if="birthForm.calendarType !== 'bazi'" class="form-grid">
                 <label>
-                  年柱
-                  <input v-model.trim="directPillars.year" type="text" maxlength="2" placeholder="甲子" required />
+                  年
+                  <input v-model.number="birthForm.year" type="number" min="1" required />
                 </label>
                 <label>
-                  月柱
-                  <input v-model.trim="directPillars.month" type="text" maxlength="2" placeholder="乙丑" required />
+                  月
+                  <input v-model.number="birthForm.month" type="number" min="1" max="12" required />
                 </label>
                 <label>
-                  日柱
-                  <input v-model.trim="directPillars.day" type="text" maxlength="2" placeholder="丙寅" required />
+                  日
+                  <input v-model.number="birthForm.day" type="number" min="1" max="31" required />
                 </label>
                 <label>
-                  时柱
-                  <input v-model.trim="directPillars.hour" type="text" maxlength="2" placeholder="丁卯" required />
+                  时
+                  <input v-model.number="birthForm.hour" type="number" min="0" max="23" required />
+                </label>
+                <label>
+                  分
+                  <input v-model.number="birthForm.minute" type="number" min="0" max="59" required />
+                </label>
+                <label>
+                  性别
+                  <select v-model="birthForm.gender">
+                    <option value="female">女</option>
+                    <option value="male">男</option>
+                  </select>
                 </label>
               </div>
-              <p class="note-line">直接四柱模式会计算藏干、十神、五行和今日流日关系；起运与大运需出生日期时间。</p>
+              <div v-else class="direct-bazi-fields">
+                <label>
+                  粘贴四柱
+                  <input v-model="directPillarsText" type="text" placeholder="例如 甲子 乙丑 丙寅 丁卯" @blur="applyDirectPillarsText" />
+                </label>
+                <div class="form-grid">
+                  <label>
+                    年柱
+                    <input v-model.trim="directPillars.year" type="text" maxlength="2" placeholder="甲子" required />
+                  </label>
+                  <label>
+                    月柱
+                    <input v-model.trim="directPillars.month" type="text" maxlength="2" placeholder="乙丑" required />
+                  </label>
+                  <label>
+                    日柱
+                    <input v-model.trim="directPillars.day" type="text" maxlength="2" placeholder="丙寅" required />
+                  </label>
+                  <label>
+                    时柱
+                    <input v-model.trim="directPillars.hour" type="text" maxlength="2" placeholder="丁卯" required />
+                  </label>
+                </div>
+                <p class="note-line">直接四柱模式会计算藏干、十神、五行和今日流日关系；起运与大运需出生日期时间。</p>
+              </div>
+              <label v-if="birthForm.calendarType === 'lunar'" class="check-row">
+                <input v-model="birthForm.isLeapMonth" type="checkbox" />
+                闰月
+              </label>
+              <div v-if="birthForm.calendarType !== 'bazi'" class="form-grid birth-advanced-grid">
+                <label>
+                  出生地经度
+                  <input v-model="longitudeDraft" type="number" step="0.0001" placeholder="例如 116.397" />
+                </label>
+                <label>
+                  子时规则
+                  <select v-model="birthForm.ziHourPolicy">
+                    <option value="lateZiNextDay">晚子时换日</option>
+                    <option value="lateZiSameDay">晚子时不换日</option>
+                  </select>
+                </label>
+                <label>
+                  起运基准
+                  <select v-model="birthForm.luckTimeBasis">
+                    <option value="clock">钟表时间（对齐常见排盘）</option>
+                    <option value="trueSolar">真太阳时</option>
+                  </select>
+                </label>
+              </div>
             </div>
-            <label v-if="birthForm.calendarType === 'lunar'" class="check-row">
-              <input v-model="birthForm.isLeapMonth" type="checkbox" />
-              闰月
-            </label>
-            <div v-if="birthForm.calendarType !== 'bazi'" class="form-grid">
-              <label>
-                出生地经度
-                <input v-model="longitudeDraft" type="number" step="0.0001" placeholder="例如 116.397" />
-              </label>
-              <label>
-                子时规则
-                <select v-model="birthForm.ziHourPolicy">
-                  <option value="lateZiNextDay">晚子时换日</option>
-                  <option value="lateZiSameDay">晚子时不换日</option>
-                </select>
-              </label>
-              <label>
-                起运基准
-                <select v-model="birthForm.luckTimeBasis">
-                  <option value="clock">钟表时间（对齐常见排盘）</option>
-                  <option value="trueSolar">真太阳时</option>
-                </select>
-              </label>
-            </div>
-            <div class="actions-row">
+            <div class="actions-row birth-editor-footer">
               <button class="primary-button" type="submit">
                 <Save :size="18" aria-hidden="true" />
                 保存并使用
@@ -2144,6 +2144,8 @@ onMounted(async () => {
         </footer>
       </section>
     </div>
+
+    <LiuyaoPanel v-if="activePanel === 'liuyao'" :persona="selectedPersona" :engine="selectedPersonaEngine" :credentials="credentialsDraft" />
 
     <section v-if="activePanel === 'reading' && mobileTab === 'home'" class="mobile-screen mobile-home-view" aria-label="移动端首页">
       <section class="mobile-hero-card">

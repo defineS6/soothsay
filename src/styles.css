@@ -1889,27 +1889,32 @@ input[type="file"] {
 
 .birth-modal {
   width: min(920px, 100%);
-  max-height: min(740px, calc(100vh - 40px));
+  max-height: min(740px, calc(100vh - 32px));
+  max-height: min(740px, calc(100dvh - 32px));
 }
 
 .master-modal {
   width: min(720px, 100%);
-  max-height: min(680px, calc(100vh - 40px));
+  max-height: min(680px, calc(100vh - 32px));
+  max-height: min(680px, calc(100dvh - 32px));
 }
 
 .profile-modal {
   width: min(580px, 100%);
-  max-height: min(640px, calc(100vh - 40px));
+  max-height: min(640px, calc(100vh - 32px));
+  max-height: min(640px, calc(100dvh - 32px));
 }
 
 .history-modal {
   width: min(780px, 100%);
-  max-height: min(720px, calc(100vh - 40px));
+  max-height: min(720px, calc(100vh - 32px));
+  max-height: min(720px, calc(100dvh - 32px));
 }
 
 .theme-modal {
   width: min(420px, 100%);
-  max-height: min(620px, calc(100vh - 40px));
+  max-height: min(620px, calc(100vh - 32px));
+  max-height: min(620px, calc(100dvh - 32px));
 }
 
 .modal-heading {
@@ -2281,9 +2286,29 @@ input[type="file"] {
 .birth-editor {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.birth-editor-fields {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   gap: 14px;
-  overflow: auto;
+  overflow-y: auto;
   padding: 18px 22px;
+}
+
+.birth-editor-footer {
+  flex: 0 0 auto;
+  padding: 12px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-raised);
 }
 
 .form-grid {
@@ -3059,16 +3084,44 @@ input[type="file"] {
     width: min(100%, 600px);
   }
 
-  .birth-modal-body,
+  .birth-modal-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .crop-body,
   .master-picker-grid {
     grid-template-columns: 1fr;
   }
 
   .birth-profile-list {
-    max-height: 200px;
+    flex: 0 0 auto;
+    max-height: 148px;
+    padding: 10px 16px;
+    gap: 6px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .birth-profile-list.is-empty,
+  .birth-list-heading {
+    display: none;
+  }
+
+  .birth-editor-fields {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .birth-editor-footer {
+    padding: 10px 16px;
+  }
+
+  .birth-editor-footer .primary-button {
+    flex: 1 1 auto;
   }
 
   /* 底部悬浮导航栏 */
@@ -3160,9 +3213,28 @@ input[type="file"] {
     gap: 3px;
   }
 
-  .form-grid,
-  .direct-bazi-fields .form-grid {
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal-heading {
+    padding: 12px 16px;
+  }
+
+  .modal-heading p {
+    display: none;
+  }
+
+  .form-grid {
+    gap: 8px;
+  }
+
+  .birth-advanced-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .birth-advanced-grid > label:last-child {
+    grid-column: 1 / -1;
   }
 
   .mobile-highlight-row {
