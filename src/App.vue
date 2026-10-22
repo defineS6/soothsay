@@ -76,7 +76,13 @@ import {
   isBuiltinEngineId
 } from '@server-shared/persona';
 
-type Panel = 'reading' | 'liuyao' | 'settings' | 'admin';
+type Panel = 'reading' | 'settings' | 'admin';
+type DivinationMode = 'bazi' | 'liuyao';
+const divinationMode = ref<DivinationMode>('bazi');
+function selectDivination(mode: DivinationMode) {
+  divinationMode.value = mode;
+  activePanel.value = 'reading';
+}
 type CropField = 'avatarFile' | 'backgroundFile' | 'mobileBackgroundFile';
 type MobileTab = 'home' | 'chart' | 'reading' | 'mine';
 type MarkdownInline = {
@@ -1738,7 +1744,6 @@ onMounted(async () => {
             <span class="context-trigger-copy"><small>{{ t('nav.birthProfile') }}</small><strong>{{ birthTriggerLabel }}</strong></span>
           </button>
         </div>
-        <button class="text-trigger" type="button" :class="{ active: activePanel === 'liuyao' }" @click="activePanel = activePanel === 'liuyao' ? 'reading' : 'liuyao'">六爻纳甲</button>
         <!-- 工具：档案 / 历史 / 凭据 / 管理 -->
         <div class="top-actions-group top-actions-tools">
           <button class="text-trigger" type="button" :title="t('nav.profile')" @click="profileModalOpen = true">
@@ -2145,8 +2150,6 @@ onMounted(async () => {
       </section>
     </div>
 
-    <LiuyaoPanel v-if="activePanel === 'liuyao'" :persona="selectedPersona" :engine="selectedPersonaEngine" :credentials="credentialsDraft" />
-
     <section v-if="activePanel === 'reading' && mobileTab === 'home'" class="mobile-screen mobile-home-view" aria-label="移动端首页">
       <section class="mobile-hero-card">
         <div>
@@ -2203,7 +2206,11 @@ onMounted(async () => {
             {{ t('home.history') }}
           </button>
         </div>
-        <div class="mobile-quick-grid">
+        <div class="divination-switcher" role="group" aria-label="选择术数">
+          <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi');showMobileTab('chart')">八字命理</button>
+          <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao');showMobileTab('chart')">六爻纳甲</button>
+        </div>
+        <div v-if="divinationMode === 'bazi'" class="mobile-quick-grid">
           <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('bazi_full')">
             <Wand2 :size="17" aria-hidden="true" />
             {{ t('home.fullReading') }}
@@ -2217,7 +2224,7 @@ onMounted(async () => {
             {{ t('home.dailyLot') }}
           </button>
         </div>
-        <div class="mobile-follow-card">
+        <div v-if="divinationMode === 'bazi'" class="mobile-follow-card">
           <input v-model="followQuestion" type="text" :placeholder="t('home.askPlaceholder')" @keyup.enter="requestReading('follow_up', followQuestion)" />
           <button
             class="composer-send"
@@ -2262,6 +2269,11 @@ onMounted(async () => {
             <span>{{ t('mine.chooseMaster') }}</span>
             <small>{{ selectedPersona?.name ?? t('mine.notSelected') }}</small>
           </button>
+          <button class="mobile-menu-item" type="button" @click="selectDivination('liuyao');showMobileTab('chart')">
+            <Wand2 :size="18" aria-hidden="true" />
+            <span>六爻纳甲</span>
+            <small>进入排盘</small>
+          </button>
           <button class="mobile-menu-item" type="button" @click="openBirthModal">
             <CalendarDays :size="18" aria-hidden="true" />
             <span>{{ t('nav.birthProfile') }}</span>
@@ -2292,7 +2304,12 @@ onMounted(async () => {
     </section>
 
     <section v-if="activePanel === 'reading'" class="workspace" :class="`mobile-tab-${mobileTab}`">
-      <section class="reading-stage" aria-live="polite">
+      <div class="divination-switcher" role="group" aria-label="选择排盘术数">
+        <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">八字命理</button>
+        <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">六爻纳甲</button>
+      </div>
+      <LiuyaoPanel v-show="divinationMode === 'liuyao'" :persona="selectedPersona" :engine="selectedPersonaEngine" :credentials="credentialsDraft" :mobile-tab="mobileTab" />
+      <section v-if="divinationMode === 'bazi'" class="reading-stage" aria-live="polite">
         <section class="panel chart-panel">
           <div class="panel-title">
             <Wand2 :size="18" aria-hidden="true" />

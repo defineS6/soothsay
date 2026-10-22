@@ -2987,6 +2987,7 @@ input[type="file"] {
   }
 }
 
+.divination-switcher{display:flex;gap:6px;padding:6px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);width:max-content;max-width:100%}.divination-switcher button{padding:8px 15px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--ink-soft);cursor:pointer}.divination-switcher button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 /* 平板与手机统一进入四 Tab 响应式工作流（<= 900px） */
 @media (max-width: 900px) {
   .app-shell {
