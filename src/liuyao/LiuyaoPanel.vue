@@ -4,15 +4,15 @@ import { Solar } from 'lunar-javascript';
 import type { PersonaSkin, PersonaEngine } from '@server-shared/persona';
 import type { LocalCredentials } from '@/storage/types';
 import { streamFortuneReading } from '@/services/proxy';
-import { makeLiuyao, type LiuyaoChart, type YaoValue } from './engine';
+import { makeLiuyao, enrichLiuyao, type ProfessionalLiuyaoChart, type YaoValue } from './engine';
 
 const props = defineProps<{ persona?: PersonaSkin; engine?: PersonaEngine; credentials: LocalCredentials }>();
-interface CaseRecord { id: string; question: string; dateTime: string; values: YaoValue[]; chart: LiuyaoChart; reading: string; }
+interface CaseRecord { id: string; question: string; dateTime: string; values: YaoValue[]; chart: ProfessionalLiuyaoChart; reading: string; }
 const STORAGE_KEY = 'soothsay.liuyao.cases.v1';
 const question = ref('');
 const dateTime = ref('');
 const values = ref<YaoValue[]>([]);
-const chart = ref<LiuyaoChart | null>(null);
+const chart = ref<ProfessionalLiuyaoChart | null>(null);
 const records = ref<CaseRecord[]>([]);
 const selectedId = ref('');
 const reading = ref('');
@@ -38,17 +38,17 @@ function toss() {
   add(coins.reduce((a,b)=>a+b,0) as YaoValue);
 }
 function clear() { values.value=[]; chart.value=null; selectedId.value=''; reading.value=''; history.value=[]; error.value=''; }
-function getDayStem() {
-  const date=new Date(dateTime.value);
-  if(!dateTime.value || Number.isNaN(date.valueOf())) throw new Error('请选择有效的占问时间');
+function getCalendar(at = dateTime.value) {
+  const date=new Date(at);
+  if(!at || Number.isNaN(date.valueOf())) throw new Error('请选择有效的占问时间');
   const lunar=Solar.fromYmdHms(date.getFullYear(),date.getMonth()+1,date.getDate(),date.getHours(),date.getMinutes(),0).getLunar();
-  return String(lunar.getDayInGanZhiExact()).slice(0,1);
+  return { dayGanZhi: String(lunar.getDayInGanZhiExact()), monthGanZhi: String(lunar.getMonthInGanZhiExact()) };
 }
 function generate() {
   try {
     if(values.value.length!==6) throw new Error('请从初爻开始完成六次起卦');
-    const dayStem=getDayStem();
-    chart.value=makeLiuyao(values.value,dayStem);
+    const calendar=getCalendar();
+    chart.value=enrichLiuyao(makeLiuyao(values.value,calendar.dayGanZhi[0]),calendar);
     const item: CaseRecord={ id:crypto.randomUUID(),question:question.value.trim(),dateTime:dateTime.value,values:[...values.value],chart:chart.value,reading:'' };
     records.value=[item,...records.value].slice(0,100);
     selectedId.value=item.id;
@@ -60,7 +60,7 @@ function generate() {
 }
 function selectCase(item: CaseRecord) {
   selectedId.value=item.id;question.value=item.question;dateTime.value=item.dateTime;
-  values.value=[...item.values];chart.value=item.chart;reading.value=item.reading;
+  values.value=[...item.values];chart.value=('calendar' in item.chart)?item.chart:enrichLiuyao(makeLiuyao(item.values,getCalendar(item.dateTime).dayGanZhi[0]),getCalendar(item.dateTime));reading.value=item.reading;
   history.value=item.reading?[{role:'user',content:item.question||'请解读本卦'},{role:'assistant',content:item.reading}]:[];
 }
 async function ask(follow=false) {
@@ -73,7 +73,7 @@ async function ask(follow=false) {
     `你是${props.persona?.name||'六爻解读助手'}。 ${props.engine?.worldview||''}`,
     ...(props.engine?.promptRules||[]),
     props.persona?.customPrompt||'',
-    '任务：依据京房纳甲盘，以传统六爻方法做结构化解释。区分程序已算出的事实、传统术数解释与现实行动建议。不得补造月建、旬空、伏神、变爻纳甲或未计算的数据，未具备的依据请明确说明。',
+    '任务：依据京房纳甲盘，以传统六爻方法做结构化解释。区分程序已算出的事实、传统术数解释与现实行动建议。只引用结构化盘面给出的月建、旬空、伏神、变爻纳甲；未计算的依据请明确说明。',
     '不把传统占卜当成有科学验证的预测，也不得用于替代医疗、法律和投资专业判断。',
     `【已计算的盘面事实】\n${facts}`
   ].filter(Boolean).join('\n');
@@ -111,14 +111,18 @@ async function ask(follow=false) {
         <template v-if="chart">
           <h3>{{ chart.primary }} <span>→</span> {{ chart.transformed }}</h3>
           <p>{{ chart.palace }}宫 · {{ chart.palaceElement }} · {{ chart.palaceStage }}</p>
+          <p>月建 {{ chart.calendar.monthGanZhi }} · 日辰 {{ chart.calendar.dayGanZhi }} · 旬空 {{ chart.calendar.xunKong.join('') }}</p>
           <div class="liuyao-lines">
             <div v-for="line in displayLines" :key="line.index" class="liuyao-line">
               <small>{{ line.spirit }}</small><strong>{{ line.relative }}</strong><span>{{ line.stem }}{{ line.branch }}{{ line.element }}</span>
               <b>{{ line.yang?'━━━':'━ ━' }}{{ line.moving?(line.yang?' ○':' ×'):'' }}</b>
               <em>{{ line.shi?'世':line.ying?'应':'' }}</em>
+              <small v-if="line.transformed">化 {{ line.transformed.relative }} {{ line.transformed.stem }}{{ line.transformed.branch }}</small>
+              <small v-if="line.void || line.monthBroken || line.dayClashed">{{ [line.void?'旬空':'',line.monthBroken?'月破':'',line.dayClashed?'日冲':''].filter(Boolean).join(' · ') }}</small>
             </div>
           </div>
-          <small>规则版本 {{ chart.ruleVersion }}。当前展示基础纳甲、六亲、六神和世应；月建、旬空、伏神等尚未接入。</small>
+          <div v-if="chart.hidden.length" class="liuyao-toss-list"><strong>伏神 / 飞神</strong><span v-for="item in chart.hidden" :key="item.relative">{{ item.relative }} {{ item.stem }}{{ item.branch }} 伏于第{{ item.index }}爻（飞神 {{ item.flyingBranch }}）</span></div>
+          <small>规则版本 {{ chart.ruleVersion }}。月建按节气月，空亡按日旬；旺衰及用神取舍仍由解读层给出。</small>
           <div class="liuyao-controls"><button class="primary-button" type="button" :disabled="busy" @click="ask(false)">{{ busy?'解读中…':'请大师解卦' }}</button></div>
           <p v-if="reading" class="liuyao-reading">{{ reading }}</p>
           <div v-if="history.length" class="liuyao-follow"><input v-model="followUp" placeholder="继续追问本卦…" @keyup.enter="ask(true)" /><button class="secondary-button" type="button" :disabled="busy||!followUp.trim()" @click="ask(true)">追问</button></div>
@@ -141,9 +145,9 @@ async function ask(follow=false) {
 .liuyao-controls,.liuyao-manual>div{display:flex;gap:8px;flex-wrap:wrap}.liuyao-toss-list,.liuyao-records{display:grid;gap:8px}
 .liuyao-toss-list span{padding:6px 10px;background:var(--surface-raised);border-radius:6px}
 .liuyao-manual{display:grid;gap:8px}.liuyao-manual button{font-size:12px}
-.liuyao-lines{display:grid;gap:9px}.liuyao-line{display:grid;grid-template-columns:38px 44px 1fr 105px 22px;gap:6px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--line-soft)}
+.liuyao-lines{display:grid;gap:9px}.liuyao-line{display:grid;grid-template-columns:38px 44px 1fr 105px 22px minmax(100px,1fr) minmax(80px,1fr);gap:6px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--line-soft)}
 .liuyao-line b{font-family:serif;white-space:nowrap}.liuyao-line em{font-style:normal;color:var(--accent)}
 .liuyao-reading{white-space:pre-wrap;line-height:1.8}.liuyao-follow{display:flex;gap:8px}.liuyao-error{color:#b42318!important}
 .liuyao-records button{text-align:left}
-@media(max-width:760px){.liuyao-layout{grid-template-columns:1fr}.liuyao-panel{padding:0 12px}.liuyao-card{padding:14px}.liuyao-line{grid-template-columns:32px 38px 1fr 94px 18px;font-size:12px;gap:3px}}
+@media(max-width:760px){.liuyao-layout{grid-template-columns:1fr}.liuyao-panel{padding:0 12px}.liuyao-card{padding:14px}.liuyao-line{grid-template-columns:32px 38px 1fr 88px 18px;font-size:12px;gap:3px}.liuyao-line small:nth-last-child(-n+2){grid-column:3/-1}}
 </style>

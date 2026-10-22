@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeLiuyao, type YaoValue } from '../src/liuyao/engine';
+import { enrichLiuyao, getXunKong, makeLiuyao, type YaoValue } from '../src/liuyao/engine';
 
 describe('六爻基础纳甲', () => {
   it('64 卦均有确定宫位、完整六爻和卦名', () => {
@@ -28,6 +28,31 @@ describe('六爻基础纳甲', () => {
     const chart=makeLiuyao([9,7,7,7,7,7]);
     expect(chart.transformed).toBe('天风姤');
     expect(chart.lines[0].moving).toBe(true);
+  });
+  it('旬空按完整六十甲子推算', () => {
+    expect(getXunKong('甲子')).toEqual(['戌','亥']);
+    expect(getXunKong('甲戌')).toEqual(['申','酉']);
+    expect(getXunKong('癸亥')).toEqual(['子','丑']);
+    expect(()=>getXunKong('甲丑')).toThrow();
+  });
+  it('动爻装变卦纳甲，并据日月标空破冲', () => {
+    const result=enrichLiuyao(makeLiuyao([9,7,7,7,7,7]),{monthGanZhi:'丙午',dayGanZhi:'甲子'});
+    expect(result.lines[0].transformed).toMatchObject({stem:'辛',branch:'丑'});
+    expect(result.lines[0].monthBroken).toBe(true);
+    expect(result.lines[0].dayClashed).toBe(false);
+    expect(result.calendar.xunKong).toEqual(['戌','亥']);
+  });
+  it('八宫所有卦伏神均取自宫首同位且补全缺失六亲', () => {
+    for(let mask=0;mask<64;mask++) {
+      const values=Array.from({length:6},(_,i)=>(mask&(1<<i))?7:8) as YaoValue[];
+      const result=enrichLiuyao(makeLiuyao(values),{monthGanZhi:'丙寅',dayGanZhi:'甲子'});
+      const existing=new Set(result.lines.map(line=>line.relative));
+      for(const hidden of result.hidden) {
+        expect(existing.has(hidden.relative)).toBe(false);
+        expect(hidden.flyingBranch).toBe(result.lines[hidden.index-1].branch);
+      }
+      expect(new Set([...existing,...result.hidden.map(h=>h.relative)]).size).toBe(5);
+    }
   });
   it('拒绝错误爻数', () => {
     expect(()=>makeLiuyao([7,8])).toThrow();

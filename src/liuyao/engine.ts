@@ -74,3 +74,58 @@ export function makeLiuyao(values: YaoValue[], dayStem = '甲') {
   return { ruleVersion:'jingfang-najia-v1',values:[...values],primary:primary.name,transformed:transformed.name,palace:group.palace.name,palaceElement:group.palace.element,palaceStage:PALACE_LABELS[group.index],lines };
 }
 export type LiuyaoChart = ReturnType<typeof makeLiuyao>;
+
+const STEMS = '甲乙丙丁戊己庚辛壬癸';
+const BRANCHES = '子丑寅卯辰巳午未申酉戌亥';
+const OPPOSITE: Record<string,string> = {子:'午',丑:'未',寅:'申',卯:'酉',辰:'戌',巳:'亥',午:'子',未:'丑',申:'寅',酉:'卯',戌:'辰',亥:'巳'};
+function install(bits: number[]) {
+  const hex=gua(bits);
+  return Array.from({length:6},(_,index)=>{
+    const part=index<3?hex.inner:hex.outer;
+    const n=index%3;
+    const stem=index<3?part.innerStem:part.outerStem;
+    const branch=(index<3?part.innerBranches:part.outerBranches)[n];
+    return {stem,branch,element:BRANCH_ELEMENTS[branch]};
+  });
+}
+export interface LiuyaoCalendar { monthGanZhi:string; dayGanZhi:string; }
+export function getXunKong(dayGanZhi:string): string[] {
+  const gan=STEMS.indexOf(dayGanZhi[0]);
+  const zhi=BRANCHES.indexOf(dayGanZhi[1]);
+  if(gan<0||zhi<0||dayGanZhi.length!==2||gan%2!==zhi%2) throw new Error('日干支无效');
+  const start=(zhi-gan+12)%12;
+  return [BRANCHES[(start+10)%12],BRANCHES[(start+11)%12]];
+}
+export function enrichLiuyao(chart:LiuyaoChart, calendar:LiuyaoCalendar) {
+  const monthBranch=calendar.monthGanZhi[1];
+  const dayBranch=calendar.dayGanZhi[1];
+  if(!BRANCH_ELEMENTS[monthBranch]||!BRANCH_ELEMENTS[dayBranch]) throw new Error('月日干支无效');
+  const empty=getXunKong(calendar.dayGanZhi);
+  const transformedBits=chart.values.map(v=>v===6?1:v===9?0:v%2);
+  const changedLines=install(transformedBits);
+  const root=TRIGRAMS.find(t=>t.name===chart.palace)!;
+  const pure=install([...root.bits,...root.bits]);
+  const present=new Set(chart.lines.map(line=>line.relative));
+  const missing=['父母','兄弟','子孙','妻财','官鬼'].filter(v=>!present.has(v));
+  const hidden=missing.map(relative=>{
+    const index=pure.findIndex(v=>relatives(chart.palaceElement,v.element)===relative);
+    if(index<0) throw new Error('本宫伏神匹配失败');
+    return {relative,index:index+1,stem:pure[index].stem,branch:pure[index].branch,flyingBranch:chart.lines[index].branch};
+  });
+  return {
+    ...chart,ruleVersion:'jingfang-najia-v2',
+    calendar:{...calendar,monthBranch,dayBranch,xunKong:empty},
+    hidden,
+    lines:chart.lines.map((line,index)=>{
+      const changed=changedLines[index];
+      return {...line,
+        monthBroken:OPPOSITE[monthBranch]===line.branch,
+        dayClashed:OPPOSITE[dayBranch]===line.branch,
+        void:empty.includes(line.branch),
+        transformed:line.moving?{...changed,relative:relatives(chart.palaceElement,changed.element)}:null
+      };
+    })
+  };
+}
+export type ProfessionalLiuyaoChart = ReturnType<typeof enrichLiuyao>;
+
