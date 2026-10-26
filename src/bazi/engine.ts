@@ -418,6 +418,7 @@ function buildDailyBasis(dayMasterElement: FiveElement, pillars: Record<PillarNa
   };
 }
 
+// 解析大运交接的公历时间文本，用于判断当前所处大运
 function parseLuckDateTime(value: string | undefined, fallbackYear: number) {
   const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?/);
   if (!match) return new Date(fallbackYear, 0, 1);
@@ -430,7 +431,8 @@ function parseLuckDateTime(value: string | undefined, fallbackYear: number) {
   );
 }
 
-function findCurrentLuckCycle(cycles: LuckCycle[], now: Date) {
+// 找出指定时间所处的大运周期：优先按交运精确时间，其次按起止年份兜底
+export function findCurrentLuckCycle(cycles: LuckCycle[], now = new Date()) {
   const ordered = [...cycles].sort((a, b) => a.index - b.index);
   const precise = ordered.find((cycle, index) => {
     const start = parseLuckDateTime(cycle.startSolarDateTime, cycle.startYear);

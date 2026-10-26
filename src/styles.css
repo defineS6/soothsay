@@ -1341,7 +1341,7 @@ input[type="file"] {
 .chart-actions {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
+  grid-template-columns: 1.15fr 1fr 1fr auto;
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--line-soft);
@@ -1355,6 +1355,14 @@ input[type="file"] {
   min-height: 40px;
   padding-inline: 8px;
   font-size: 13px;
+}
+
+/* 复制盘面按钮：图标方按钮，与左侧三个主操作等高 */
+.chart-actions .chart-copy-button {
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  color: var(--ink-soft);
 }
 
 .lot-button {

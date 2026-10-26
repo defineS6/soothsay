@@ -16,6 +16,12 @@ const PRODUCES: Record<Element, Element> = { 木:'火',火:'土',土:'金',金:'
 const CONTROLS: Record<Element, Element> = { 木:'土',土:'水',水:'火',火:'金',金:'木' };
 const SPIRITS = ['青龙','朱雀','勾陈','螣蛇','白虎','玄武'];
 const PALACE_LABELS = ['本宫','一世','二世','三世','四世','五世','游魂','归魂'];
+// 爻位名称：初爻到上爻的固定顺序，装盘展示与导出文本共用
+export const YAO_POSITION_LABELS = ['初爻','二爻','三爻','四爻','五爻','上爻'] as const;
+// 按 1-6 的爻序号取爻位名称，超出范围时兜底为「N爻」
+export function yaoPositionLabel(index: number) {
+  return YAO_POSITION_LABELS[index - 1] ?? `${index}爻`;
+}
 const HEXAGRAM_NAMES: Record<string,string> = {
   '乾乾':'乾为天','坤坤':'坤为地','坎震':'水雷屯','艮坎':'山水蒙','坎乾':'水天需','乾坎':'天水讼','坤坎':'地水师','坎坤':'水地比',
   '巽乾':'风天小畜','乾兑':'天泽履','坤乾':'地天泰','乾坤':'天地否','乾离':'天火同人','离乾':'火天大有','坤艮':'地山谦','震坤':'雷地豫',

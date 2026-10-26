@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Solar } from 'lunar-javascript';
 import {
   Compass,
+  Copy,
   MessageCircle,
   RotateCcw,
   Send,
@@ -14,7 +15,15 @@ import {
 import type { PersonaSkin, PersonaEngine } from '@server-shared/persona';
 import type { LocalCredentials } from '@/storage/types';
 import { streamFortuneReading } from '@/services/proxy';
-import { makeLiuyao, enrichLiuyao, type ProfessionalLiuyaoChart, type YaoValue } from './engine';
+import { buildLiuyaoChartText, copyTextToClipboard } from '@/export/chart-text';
+import {
+  makeLiuyao,
+  enrichLiuyao,
+  yaoPositionLabel,
+  YAO_POSITION_LABELS,
+  type ProfessionalLiuyaoChart,
+  type YaoValue
+} from './engine';
 
 const props = defineProps<{
   persona?: PersonaSkin;
@@ -25,6 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'switch-mobile-tab', tab: 'home' | 'chart' | 'reading' | 'mine'): void;
+  (event: 'notify', message: string): void;
 }>();
 
 interface CaseRecord {
@@ -37,7 +47,6 @@ interface CaseRecord {
 }
 
 const STORAGE_KEY = 'soothsay.liuyao.cases.v1';
-const YAO_POSITION_LABELS = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'] as const;
 
 const question = ref('');
 const dateTime = ref('');
@@ -77,10 +86,6 @@ const tossSlots = computed(() =>
     };
   })
 );
-
-function yaoPositionLabel(index: number) {
-  return YAO_POSITION_LABELS[index - 1] ?? `${index}爻`;
-}
 
 function save() {
   try {
@@ -213,8 +218,18 @@ function selectCase(item: CaseRecord) {
   error.value = '';
 }
 
-async function ask(follow = false) {
-  if (!chart.value || busy.value) return;
+// 一键复制卦盘：把当前纳甲盘转成 Markdown 文本，并带上占问信息
+async function copyChart() {
+  if (!chart.value) return;
+  try {
+    await copyTextToClipboard(buildLiuyaoChartText(chart.value, { question: question.value, dateTime: dateTime.value }));
+    emit('notify', '卦盘已复制，可直接粘贴给任意 AI 工具');
+  } catch {
+    error.value = '复制失败，请检查浏览器剪贴板权限';
+  }
+}
+
+async function ask(follow = false) {  if (!chart.value || busy.value) return;
   if (!props.credentials.baseUrl || !props.credentials.apiKey || !props.credentials.model) {
     error.value = '请先在设置页配置模型凭据';
     return;
@@ -541,6 +556,17 @@ async function ask(follow = false) {
         >
           <MessageCircle :size="17" aria-hidden="true" />
           {{ busy ? '解读中…' : '请大师解卦' }}
+        </button>
+        <!-- 一键复制卦盘：输出纯文本盘面，方便粘贴给任意 AI 工具 -->
+        <button
+          class="secondary-button chart-copy-button"
+          type="button"
+          title="复制卦盘给 AI"
+          aria-label="复制卦盘给 AI"
+          :disabled="!chart"
+          @click="copyChart"
+        >
+          <Copy :size="17" aria-hidden="true" />
         </button>
       </div>
     </section>

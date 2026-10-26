@@ -26,8 +26,9 @@ import {
   UserRound,
   Wand2
 } from 'lucide-vue-next';
-import { createBaziChart } from '@/bazi/engine';
+import { createBaziChart, findCurrentLuckCycle } from '@/bazi/engine';
 import LiuyaoPanel from '@/liuyao/LiuyaoPanel.vue';
+import { buildBaziChartText, copyTextToClipboard } from '@/export/chart-text';
 import { localeStorageKey, normalizeLocale, translate, type Locale, type TranslationKey } from '@/i18n';
 import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, LuckCycle, PillarName } from '@/bazi/types';
 import { buildFortuneMessages, buildPersonaGenerationMessages, type FortuneTask, type PersonaGenerationDraft } from '@/persona/prompt';
@@ -408,29 +409,6 @@ const chartRelationRows = computed(() => {
     }))
   ];
 });
-
-function parseLuckDateTime(value: string | undefined, fallbackYear: number) {
-  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?/);
-  if (!match) return new Date(fallbackYear, 0, 1);
-  return new Date(
-    Number(match[1]),
-    Number(match[2]) - 1,
-    Number(match[3]),
-    Number(match[4] ?? 0),
-    Number(match[5] ?? 0)
-  );
-}
-
-function findCurrentLuckCycle(cycles: LuckCycle[], now = new Date()) {
-  const ordered = [...cycles].sort((a, b) => a.index - b.index);
-  return (
-    ordered.find((cycle, index) => {
-      const start = parseLuckDateTime(cycle.startSolarDateTime, cycle.startYear);
-      const next = ordered[index + 1] ? parseLuckDateTime(ordered[index + 1].startSolarDateTime, ordered[index + 1].startYear) : null;
-      return now >= start && (!next || now < next);
-    }) ?? ordered.find((cycle) => now.getFullYear() >= cycle.startYear && now.getFullYear() <= cycle.endYear)
-  );
-}
 
 const currentLuckIndex = computed(() => {
   const cycles = chart.value?.luck.cycles ?? [];
@@ -992,6 +970,17 @@ function formatLuckCycleRange(cycle: LuckCycle) {
   const startAge = cycle.displayStartAge ?? cycle.startAge;
   const endAge = cycle.displayEndAge ?? cycle.endAge;
   return `${startYear}-${endYear} · ${startAge}-${endAge}岁`;
+}
+
+// 一键复制八字命盘：把当前命盘事实层转成 Markdown 文本，用户可粘贴给任意 AI 工具
+async function copyBaziChart() {
+  if (!chart.value) return;
+  try {
+    await copyTextToClipboard(buildBaziChartText(chart.value));
+    setMessage('命盘已复制，可直接粘贴给任意 AI 工具');
+  } catch {
+    setMessage('复制失败，请检查浏览器剪贴板权限');
+  }
 }
 
 async function activateBirthProfile(profile: BirthProfile, options: { silent?: boolean; closeModal?: boolean } = {}) {
@@ -2326,6 +2315,7 @@ onMounted(async () => {
         :credentials="credentialsDraft"
         :mobile-tab="mobileTab"
         @switch-mobile-tab="showMobileTab"
+        @notify="setMessage"
       >
         <template #switcher>
           <div class="divination-switcher" role="group" aria-label="选择排盘术数">
@@ -2501,6 +2491,16 @@ onMounted(async () => {
             >
               <Sparkles :size="18" aria-hidden="true" />
               {{ t('home.dailyLot') }}
+            </button>
+            <!-- 一键复制命盘：输出纯文本盘面，方便粘贴给任意 AI 工具 -->
+            <button
+              class="secondary-button chart-copy-button"
+              type="button"
+              title="复制命盘给 AI"
+              aria-label="复制命盘给 AI"
+              @click="copyBaziChart"
+            >
+              <Copy :size="17" aria-hidden="true" />
             </button>
           </div>
           <div v-else class="empty-state chart-empty">
