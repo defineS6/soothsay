@@ -127,6 +127,7 @@ function isSyncPreferences(value: unknown): value is SyncPreferences {
   if (!isRecord(value)) return false;
   if (value.theme !== undefined && typeof value.theme !== 'string') return false;
   if (value.locale !== undefined && typeof value.locale !== 'string') return false;
+  if (value.skipOpening !== undefined && typeof value.skipOpening !== 'boolean') return false;
   return true;
 }
 

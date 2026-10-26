@@ -1787,6 +1787,27 @@ input[type="file"] {
   align-items: start;
 }
 
+/* 后台站点偏好卡片：与角色网格同宽对齐，排在网格下方 */
+.admin-preferences {
+  margin-top: 20px;
+  gap: 12px;
+}
+
+.admin-toggle-row {
+  align-self: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.admin-preferences .note-line {
+  margin: 0;
+}
+
 .ai-generator,
 .engine-draft {
   display: flex;

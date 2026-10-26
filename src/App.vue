@@ -46,7 +46,7 @@ import {
   verifyAdmin
 } from '@/services/admin';
 import { clearCredentials, getCredentials, saveCredentials, validateCredentials } from '@/storage/credentials';
-import { themeStorageKey } from '@/storage/preferences';
+import { readSkipOpening, themeStorageKey, writeSkipOpening } from '@/storage/preferences';
 import {
   DEFAULT_WEBDAV_PATH,
   clearWebdavConfig,
@@ -200,6 +200,8 @@ const followQuestion = ref('');
 const factDraft = ref('');
 const showOpeningAnimation = ref(true);
 const openingAnimationClosing = ref(false);
+// 后台管理中的「跳过开屏动画」开关：存在本机，刷新页面后生效
+const skipOpening = ref(false);
 const masterModalOpen = ref(false);
 const profileModalOpen = ref(false);
 const historyModalOpen = ref(false);
@@ -1094,6 +1096,18 @@ function skipOpeningAnimation() {
   }, 220);
 }
 
+// 切换「跳过开屏动画」：写入本机偏好，开启时立即收起正在播放的仪式动画
+function toggleSkipOpening(next: boolean) {
+  skipOpening.value = next;
+  writeSkipOpening(next);
+  if (next && showOpeningAnimation.value) skipOpeningAnimation();
+}
+
+// 后台开关的 change 事件：取复选框最新状态后交给 toggleSkipOpening
+function onSkipOpeningChange(event: Event) {
+  toggleSkipOpening((event.target as HTMLInputElement).checked);
+}
+
 async function removeFact(fact: string) {
   sharedProfile.value = await removeSharedFact(fact);
   setMessage('上下文已移除');
@@ -1644,7 +1658,12 @@ onMounted(async () => {
   loadRememberedAdminSession();
   loadWebdavConfig();
   document.documentElement.lang = locale.value;
-  startOpeningAnimation();
+  skipOpening.value = readSkipOpening();
+  if (skipOpening.value) {
+    showOpeningAnimation.value = false;
+  } else {
+    startOpeningAnimation();
+  }
   loading.value = true;
   try {
     await loadPersonas();
@@ -2807,6 +2826,19 @@ onMounted(async () => {
           </article>
         </section>
       </div>
+
+      <!-- 站点偏好：只影响当前浏览器的轻量开关，不写入服务端 -->
+      <section class="panel admin-preferences">
+        <div class="panel-title">
+          <Sparkles :size="18" aria-hidden="true" />
+          <h2>站点偏好</h2>
+        </div>
+        <label class="check-row admin-toggle-row">
+          <input :checked="skipOpening" type="checkbox" @change="onSkipOpeningChange" />
+          跳过开屏动画（乾坤启阵）
+        </label>
+        <p class="note-line">开启后打开页面直接进入工作台，不再播放开屏仪式；立即生效，仅影响当前浏览器，并随 WebDAV 备份同步。</p>
+      </section>
     </section>
 
     <nav class="mobile-bottom-tabs" :aria-label="t('nav.mobile')">

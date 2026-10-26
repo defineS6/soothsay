@@ -52,6 +52,8 @@ export interface WebdavConfig {
 export interface SyncPreferences {
   theme?: string;
   locale?: string;
+  /** 是否跳过开屏动画（乾坤启阵） */
+  skipOpening?: boolean;
 }
 
 /**
