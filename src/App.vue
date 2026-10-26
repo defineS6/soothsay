@@ -2208,8 +2208,8 @@ onMounted(async () => {
           </button>
         </div>
         <div class="divination-switcher" role="group" aria-label="选择术数">
-          <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi');showMobileTab('chart')">八字命理</button>
-          <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao');showMobileTab('chart')">六爻纳甲</button>
+          <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">八字命理</button>
+          <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">六爻纳甲</button>
         </div>
         <div v-if="divinationMode === 'bazi'" class="mobile-quick-grid">
           <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('bazi_full')">
@@ -2223,6 +2223,20 @@ onMounted(async () => {
           <button class="secondary-button" type="button" :disabled="!chart || streaming || drawingLot" @click="requestDailyLot">
             <Sparkles :size="17" aria-hidden="true" />
             {{ t('home.dailyLot') }}
+          </button>
+        </div>
+        <div v-else class="mobile-quick-grid">
+          <button class="secondary-button" type="button" @click="selectDivination('liuyao'); showMobileTab('chart')">
+            <Sparkles :size="17" aria-hidden="true" />
+            铜钱起卦
+          </button>
+          <button class="secondary-button" type="button" @click="selectDivination('liuyao'); showMobileTab('chart')">
+            <Wand2 :size="17" aria-hidden="true" />
+            六爻装盘
+          </button>
+          <button class="secondary-button" type="button" @click="selectDivination('liuyao'); showMobileTab('reading')">
+            <MessageCircle :size="17" aria-hidden="true" />
+            大师解卦
           </button>
         </div>
         <div v-if="divinationMode === 'bazi'" class="mobile-follow-card">
@@ -2305,16 +2319,47 @@ onMounted(async () => {
     </section>
 
     <section v-if="activePanel === 'reading'" class="workspace" :class="[`mobile-tab-${mobileTab}`, { 'workspace-liuyao': divinationMode === 'liuyao' }]">
-      <div class="divination-switcher" role="group" aria-label="选择排盘术数">
-        <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">八字命理</button>
-        <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">六爻纳甲</button>
-      </div>
-      <LiuyaoPanel v-show="divinationMode === 'liuyao'" :persona="selectedPersona" :engine="selectedPersonaEngine" :credentials="credentialsDraft" :mobile-tab="mobileTab" />
+      <LiuyaoPanel
+        v-show="divinationMode === 'liuyao'"
+        :persona="selectedPersona"
+        :engine="selectedPersonaEngine"
+        :credentials="credentialsDraft"
+        :mobile-tab="mobileTab"
+        @switch-mobile-tab="showMobileTab"
+      >
+        <template #switcher>
+          <div class="divination-switcher" role="group" aria-label="选择排盘术数">
+            <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">
+              <Wand2 :size="15" aria-hidden="true" />
+              八字命理
+            </button>
+            <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">
+              <Sparkles :size="15" aria-hidden="true" />
+              六爻纳甲
+            </button>
+          </div>
+        </template>
+        <template #markdown="{ text }">
+          <MarkdownRenderer :blocks="parseMarkdown(text)" />
+        </template>
+      </LiuyaoPanel>
       <section v-if="divinationMode === 'bazi'" class="reading-stage" aria-live="polite">
         <section class="panel chart-panel">
-          <div class="panel-title">
-            <Wand2 :size="18" aria-hidden="true" />
-            <h2>{{ t('nav.chart') }}</h2>
+          <div class="panel-title chart-panel-header">
+            <div class="divination-switcher" role="group" aria-label="选择排盘术数">
+              <button type="button" class="active" @click="selectDivination('bazi')">
+                <Wand2 :size="15" aria-hidden="true" />
+                八字命理
+              </button>
+              <button type="button" @click="selectDivination('liuyao')">
+                <Sparkles :size="15" aria-hidden="true" />
+                六爻纳甲
+              </button>
+            </div>
+            <button class="ghost-button panel-title-action" type="button" @click="openBirthModal">
+              <CalendarDays :size="14" aria-hidden="true" />
+              {{ activeBirthProfile ? '换生辰' : t('nav.birthProfile') }}
+            </button>
           </div>
           <div v-if="selectedPersona" class="chart-master-strip">
             <img class="chart-master-avatar" :src="selectedPersona.avatarUrl" :alt="selectedPersona.name" />

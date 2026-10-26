@@ -724,6 +724,9 @@ input[type="file"] {
    3. 主工作台：左命盘侧栏 + 右解读主区
    ============================================================ */
 .workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   flex: 1 1 auto;
   width: min(var(--container-max), 100%);
   height: 100%;
@@ -733,6 +736,7 @@ input[type="file"] {
 }
 
 .reading-stage {
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: minmax(360px, 416px) minmax(0, 1fr);
   gap: var(--grid-gutter);
@@ -787,9 +791,30 @@ input[type="file"] {
 }
 
 .chart-panel > .panel-title {
-  padding: 14px 18px;
+  padding: 10px 16px;
+  min-height: 56px;
   border-bottom: 1px solid var(--line-soft);
   background: var(--surface);
+}
+
+.chart-panel-header {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-title-action {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-color: var(--line-soft);
+  background: var(--surface-raised);
+}
+
+.panel-title-action:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--bg-soft);
 }
 
 .chart-master-strip {
@@ -2987,7 +3012,66 @@ input[type="file"] {
   }
 }
 
-.divination-switcher{display:flex;gap:6px;padding:6px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);width:max-content;max-width:100%}.divination-switcher button{padding:8px 15px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--ink-soft);cursor:pointer}.divination-switcher button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+/* 术数模式切换器（八字命理 / 六爻纳甲） */
+.divination-switcher {
+  flex: 0 0 auto;
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 3px;
+  padding: 3px;
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--bg-soft);
+}
+
+.mobile-action-card .divination-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.divination-switcher button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color var(--dur-micro) var(--ease),
+    background-color var(--dur-micro) var(--ease),
+    box-shadow var(--dur-micro) var(--ease);
+}
+
+.divination-switcher button > svg {
+  flex-shrink: 0;
+}
+
+.divination-switcher button:hover:not(.active) {
+  color: var(--ink);
+}
+
+.divination-switcher button.active {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+.divination-switcher button.active > svg {
+  color: var(--accent);
+}
+
 /* 平板与手机统一进入四 Tab 响应式工作流（<= 900px） */
 @media (max-width: 900px) {
   .app-shell {
@@ -3039,17 +3123,19 @@ input[type="file"] {
     overflow: visible;
   }
 
+  .workspace > .divination-switcher {
+    display: grid;
+    width: 100%;
+  }
+
   .workspace.mobile-tab-chart,
-  .workspace.mobile-tab-reading,
-  .workspace.workspace-liuyao.mobile-tab-mine {
+  .workspace.mobile-tab-reading {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
   }
-
-  .workspace.workspace-liuyao.mobile-tab-mine .divination-switcher { display: none; }
 
   .reading-stage {
     display: flex;
