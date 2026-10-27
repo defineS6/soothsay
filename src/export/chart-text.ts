@@ -2,6 +2,7 @@ import { findCurrentLuckCycle } from '@/bazi/engine';
 import { formatCivilDateTime } from '@/bazi/solar-time';
 import type { BaziChart, FiveElement, PillarName } from '@/bazi/types';
 import { yaoPositionLabel, type ProfessionalLiuyaoChart } from '@/liuyao/engine';
+import type { MeihuaChart } from '@/meihua/engine';
 
 const FIVE_ELEMENTS: FiveElement[] = ['木', '火', '土', '金', '水'];
 const PILLAR_ORDER: PillarName[] = ['year', 'month', 'day', 'hour'];
@@ -252,6 +253,43 @@ export function buildLiuyaoChartText(chart: ProfessionalLiuyaoChart, meta: Liuya
   lines.push('5. 给出可落地的现实建议，并说明这是传统术数解释而非确定预测。');
   lines.push('');
 
+  return lines.join('\n');
+}
+
+/** 梅花易数结构化卦盘导出：复述确定性盘面，供任意 AI 工具参考。 */
+export function buildMeihuaChartText(chart: MeihuaChart, question = ''): string {
+  const lines = [
+    '# 梅花易数卦盘（Soothsay 排盘结果）',
+    '',
+    '## 占问',
+    `- 问题：${question.trim() || '未填写'}`,
+    `- 起卦方式：${chart.method === 'time' ? '年月日时（农历）' : '两数取卦'}`,
+    `- 起卦时间：${chart.source.dateTime?.replace('T', ' ') || '不适用'}`,
+    `- 农历：${chart.source.lunarText || '不适用'}`,
+    `- 起卦数：上卦数 ${chart.source.upperNumber}，下卦数 ${chart.source.lowerNumber}`,
+    `- 规则版本：${chart.ruleVersion}`,
+    '',
+    '## 本卦、互卦、变卦'
+  ];
+  for (const [label, hexagram] of [
+    ['本卦', chart.primary], ['互卦', chart.mutual], ['变卦', chart.changed]
+  ] as const) {
+    lines.push(`- ${label}：${hexagram.name}（上${hexagram.upper.name}${hexagram.upper.element}、下${hexagram.lower.name}${hexagram.lower.element}）`);
+    lines.push(`  爻象（上→初）：${[...hexagram.lines].reverse().map((value) => value ? '⚊' : '⚋').join(' ')}`);
+  }
+  lines.push(
+    '',
+    '## 动爻及体用',
+    `- 动爻：第${chart.movingLine}爻（初爻为一）`,
+    `- 体卦：${chart.body.name}${chart.body.element}（${chart.bodyPosition === 'upper' ? '上卦' : '下卦'}）`,
+    `- 用卦：${chart.use.name}${chart.use.element}（${chart.usePosition === 'upper' ? '上卦' : '下卦'}）`,
+    `- 本卦体用：${chart.relations.primary}`,
+    `- 互卦上互与体：${chart.relations.mutualUpper}；下互与体：${chart.relations.mutualLower}`,
+    `- 变卦变用：${chart.changedUse.name}${chart.changedUse.element}，${chart.relations.changed}`,
+    '',
+    '## 解卦要求',
+    '请依据本卦、互卦、变卦及体用生克解释所问之事，先交代盘面依据再给出传统象数解读与现实建议；勿混用六爻纳甲法，亦勿将占卜解释视为确定预测。'
+  );
   return lines.join('\n');
 }
 

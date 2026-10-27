@@ -32,6 +32,9 @@ const HEXAGRAM_NAMES: Record<string,string> = {
   '兑离':'泽火革','离巽':'火风鼎','震震':'震为雷','艮艮':'艮为山','巽艮':'风山渐','震兑':'雷泽归妹','震离':'雷火丰','离艮':'火山旅',
   '巽巽':'巽为风','兑兑':'兑为泽','巽坎':'风水涣','坎兑':'水泽节','巽兑':'风泽中孚','震艮':'雷山小过','坎离':'水火既济','离坎':'火水未济'
 };
+export function getHexagramName(upper: string, lower: string): string {
+  return HEXAGRAM_NAMES[upper + lower] ?? upper + lower;
+}
 function sameBits(a: number[], b: number[]): boolean { return a.every((v,i)=>v===b[i]); }
 function trigram(bits: number[]): Trigram {
   const found = TRIGRAMS.find(item=>sameBits(item.bits,bits));
@@ -59,7 +62,7 @@ function identifyPalace(bits: number[]) {
 function gua(bits: number[]) {
   const inner=trigram(bits.slice(0,3));
   const outer=trigram(bits.slice(3,6));
-  return { inner, outer, name: HEXAGRAM_NAMES[outer.name+inner.name] ?? outer.name+inner.name };
+  return { inner, outer, name: getHexagramName(outer.name, inner.name) };
 }
 export function makeLiuyao(values: YaoValue[], dayStem = '甲') {
   if (values.length!==6 || values.some(v=>![6,7,8,9].includes(v))) throw new Error('请提供初爻到上爻共六爻（6、7、8、9）');

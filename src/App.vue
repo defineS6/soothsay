@@ -2,7 +2,9 @@
 import { computed, defineComponent, h, nextTick, onMounted, reactive, ref } from 'vue';
 import type { PropType } from 'vue';
 import {
+  BookOpen,
   CalendarDays,
+  Clock3,
   Check,
   Cloud,
   CloudDownload,
@@ -28,6 +30,7 @@ import {
 } from 'lucide-vue-next';
 import { createBaziChart, findCurrentLuckCycle } from '@/bazi/engine';
 import LiuyaoPanel from '@/liuyao/LiuyaoPanel.vue';
+import MeihuaPanel from '@/meihua/MeihuaPanel.vue';
 import { buildBaziChartText, copyTextToClipboard } from '@/export/chart-text';
 import { localeStorageKey, normalizeLocale, translate, type Locale, type TranslationKey } from '@/i18n';
 import type { BaziChart, BirthDateTimeInput, ChartFactor, FiveElement, LuckCycle, PillarName } from '@/bazi/types';
@@ -78,7 +81,7 @@ import {
 } from '@server-shared/persona';
 
 type Panel = 'reading' | 'settings' | 'admin';
-type DivinationMode = 'bazi' | 'liuyao';
+type DivinationMode = 'bazi' | 'liuyao' | 'meihua';
 const divinationMode = ref<DivinationMode>('bazi');
 function selectDivination(mode: DivinationMode) {
   divinationMode.value = mode;
@@ -176,7 +179,7 @@ const themeOptions: Array<{
     id: 'amber',
     nameKey: 'theme.name.amber',
     descKey: 'theme.desc.amber',
-    swatches: ['#f4eee4', '#fdfaf5', '#9c5a25']
+    swatches: ['#ede0c8', '#f9f2e4', '#b46212']
   }
 ];
 
@@ -2236,6 +2239,7 @@ onMounted(async () => {
         <div class="divination-switcher" role="group" aria-label="选择术数">
           <button type="button" :class="{ active: divinationMode === 'bazi' }" @click="selectDivination('bazi')">八字命理</button>
           <button type="button" :class="{ active: divinationMode === 'liuyao' }" @click="selectDivination('liuyao')">六爻纳甲</button>
+          <button type="button" :class="{ active: divinationMode === 'meihua' }" @click="selectDivination('meihua')">梅花易数</button>
         </div>
         <div v-if="divinationMode === 'bazi'" class="mobile-quick-grid">
           <button class="secondary-button" type="button" :disabled="!chart || streaming" @click="requestReading('bazi_full')">
@@ -2251,7 +2255,7 @@ onMounted(async () => {
             {{ t('home.dailyLot') }}
           </button>
         </div>
-        <div v-else class="mobile-quick-grid">
+        <div v-else-if="divinationMode === 'liuyao'" class="mobile-quick-grid">
           <button class="secondary-button" type="button" @click="selectDivination('liuyao'); showMobileTab('chart')">
             <Sparkles :size="17" aria-hidden="true" />
             铜钱起卦
@@ -2264,6 +2268,11 @@ onMounted(async () => {
             <MessageCircle :size="17" aria-hidden="true" />
             大师解卦
           </button>
+        </div>
+        <div v-else class="mobile-quick-grid">
+          <button class="secondary-button" type="button" @click="selectDivination('meihua'); showMobileTab('chart')"><Clock3 :size="17" aria-hidden="true" />时间起卦 / 数字起卦</button>
+          <button class="secondary-button" type="button" @click="selectDivination('meihua'); showMobileTab('chart')"><Wand2 :size="17" aria-hidden="true" />查看梅花卦盘</button>
+          <button class="secondary-button" type="button" @click="selectDivination('meihua'); showMobileTab('reading')"><MessageCircle :size="17" aria-hidden="true" />大师解卦</button>
         </div>
         <div v-if="divinationMode === 'bazi'" class="mobile-follow-card">
           <input v-model="followQuestion" type="text" :placeholder="t('home.askPlaceholder')" @keyup.enter="requestReading('follow_up', followQuestion)" />
@@ -2315,6 +2324,11 @@ onMounted(async () => {
             <span>六爻纳甲</span>
             <small>进入排盘</small>
           </button>
+          <button class="mobile-menu-item" type="button" @click="selectDivination('meihua');showMobileTab('chart')">
+            <Sparkles :size="18" aria-hidden="true" />
+            <span>梅花易数</span>
+            <small>进入起卦</small>
+          </button>
           <button class="mobile-menu-item" type="button" @click="openBirthModal">
             <CalendarDays :size="18" aria-hidden="true" />
             <span>{{ t('nav.birthProfile') }}</span>
@@ -2344,7 +2358,7 @@ onMounted(async () => {
       </section>
     </section>
 
-    <section v-if="activePanel === 'reading'" class="workspace" :class="[`mobile-tab-${mobileTab}`, { 'workspace-liuyao': divinationMode === 'liuyao' }]">
+    <section v-if="activePanel === 'reading'" class="workspace" :class="[`mobile-tab-${mobileTab}`, { 'workspace-liuyao': divinationMode === 'liuyao', 'workspace-meihua': divinationMode === 'meihua' }]">
       <LiuyaoPanel
         v-show="divinationMode === 'liuyao'"
         :persona="selectedPersona"
@@ -2364,12 +2378,36 @@ onMounted(async () => {
               <Sparkles :size="15" aria-hidden="true" />
               六爻纳甲
             </button>
+            <button type="button" :class="{ active: divinationMode === 'meihua' }" @click="selectDivination('meihua')">
+              <BookOpen :size="15" aria-hidden="true" />
+              梅花易数
+            </button>
           </div>
         </template>
         <template #markdown="{ text }">
           <MarkdownRenderer :blocks="parseMarkdown(text)" />
         </template>
       </LiuyaoPanel>
+      <MeihuaPanel
+        v-show="divinationMode === 'meihua'"
+        :persona="selectedPersona"
+        :engine="selectedPersonaEngine"
+        :credentials="credentialsDraft"
+        :mobile-tab="mobileTab"
+        @switch-mobile-tab="showMobileTab"
+        @notify="setMessage"
+      >
+        <template #switcher>
+          <div class="divination-switcher" role="group" aria-label="选择排盘术数">
+            <button type="button" @click="selectDivination('bazi')"><Wand2 :size="15" aria-hidden="true" />八字命理</button>
+            <button type="button" @click="selectDivination('liuyao')"><Sparkles :size="15" aria-hidden="true" />六爻纳甲</button>
+            <button type="button" class="active" @click="selectDivination('meihua')"><BookOpen :size="15" aria-hidden="true" />梅花易数</button>
+          </div>
+        </template>
+        <template #markdown="{ text }">
+          <MarkdownRenderer :blocks="parseMarkdown(text)" />
+        </template>
+      </MeihuaPanel>
       <section v-if="divinationMode === 'bazi'" class="reading-stage" aria-live="polite">
         <section class="panel chart-panel">
           <div class="panel-title chart-panel-header">
@@ -2381,6 +2419,10 @@ onMounted(async () => {
               <button type="button" @click="selectDivination('liuyao')">
                 <Sparkles :size="15" aria-hidden="true" />
                 六爻纳甲
+              </button>
+              <button type="button" @click="selectDivination('meihua')">
+                <BookOpen :size="15" aria-hidden="true" />
+                梅花易数
               </button>
             </div>
             <button class="ghost-button panel-title-action" type="button" @click="openBirthModal">

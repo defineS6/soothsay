@@ -245,29 +245,29 @@
   --focus-ring: 0 0 0 3px rgba(212, 155, 84, 0.24);
 }
 
-/* —— 扩展主题：琥珀（善本麻纸 + 岩茶温润） —— */
+/* —— 扩展主题：琥珀（黄麻蜜蜡 + 流金温润） —— */
 [data-theme="amber"] {
   color-scheme: light;
-  --bg: #f4eee4;
-  --bg-soft: #e9dfd0;
-  --surface: #fdfaf5;
-  --surface-raised: #f7f1e7;
-  --panel-bg: rgba(253, 250, 245, 0.94);
-  --wash-rgb: 244, 238, 228;
-  --ink: #231b14;
-  --ink-soft: #4c3e32;
-  --muted: #827162;
-  --line: #dfd3c2;
-  --line-soft: #ece2d4;
-  --accent: #9c5a25;
-  --accent-strong: #7e471b;
-  --accent-soft: rgba(156, 90, 37, 0.11);
-  --primary-bg: #7c4419;
-  --primary-hover: #633512;
-  --primary-ink: #fdfaf5;
+  --bg: #ede0c8;
+  --bg-soft: #e0cfb0;
+  --surface: #f9f2e4;
+  --surface-raised: #f2e7d3;
+  --panel-bg: rgba(249, 242, 228, 0.94);
+  --wash-rgb: 237, 224, 200;
+  --ink: #261b0e;
+  --ink-soft: #523d24;
+  --muted: #856b4c;
+  --line: #d4c09e;
+  --line-soft: #e4d4b7;
+  --accent: #b46212;
+  --accent-strong: #924d0b;
+  --accent-soft: rgba(180, 98, 18, 0.14);
+  --primary-bg: #964f0b;
+  --primary-hover: #7a3f07;
+  --primary-ink: #fdf9f0;
   --danger: #9f2f2f;
-  --danger-soft: rgba(159, 47, 47, 0.1);
-  --focus-ring: 0 0 0 3px rgba(156, 90, 37, 0.18);
+  --danger-soft: rgba(159, 47, 47, 0.12);
+  --focus-ring: 0 0 0 3px rgba(180, 98, 18, 0.22);
 }
 
 /* ============================================================
@@ -879,7 +879,25 @@ input[type="file"] {
 
 .chart-panel-header {
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+/* 三种术数切换占一整行，避免与「新起一卦 / 换生辰」挤占窄侧栏 */
+.chart-panel-header > .divination-switcher {
+  flex: 1 1 100%;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.chart-panel-header > .divination-switcher button {
+  min-width: 0;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.chart-panel-header > .panel-title-action {
+  margin-left: auto;
 }
 
 .panel-title-action {
@@ -3121,11 +3139,11 @@ input[type="file"] {
   }
 }
 
-/* 术数模式切换器（八字命理 / 六爻纳甲） */
+/* 术数模式切换器（八字 / 六爻 / 梅花） */
 .divination-switcher {
   flex: 0 0 auto;
   display: inline-grid;
-  grid-template-columns: repeat(2, auto);
+  grid-template-columns: repeat(3, auto);
   gap: 3px;
   padding: 3px;
   width: max-content;
@@ -3137,7 +3155,7 @@ input[type="file"] {
 
 .mobile-action-card .divination-switcher {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
   margin-bottom: 10px;
 }

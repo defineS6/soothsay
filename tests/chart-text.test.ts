@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createBaziChart } from '@/bazi/engine';
-import { buildBaziChartText, buildLiuyaoChartText } from '@/export/chart-text';
+import { buildBaziChartText, buildLiuyaoChartText, buildMeihuaChartText } from '@/export/chart-text';
+import { makeMeihuaByNumbers } from '@/meihua/engine';
 import { enrichLiuyao, makeLiuyao, type YaoValue } from '@/liuyao/engine';
 
 describe('盘面文本导出', () => {
@@ -50,6 +51,18 @@ describe('盘面文本导出', () => {
 
     expect(text).toContain('未提供（直接四柱模式）');
     expect(text).toContain('## 大运');
+    expect(text).not.toContain('undefined');
+  });
+
+  it('梅花文本包括本互变、动爻、体用和解读说明', () => {
+    const chart = makeMeihuaByNumbers(3, 6);
+    const text = buildMeihuaChartText(chart, '项目能否顺利开展');
+    expect(text).toContain('项目能否顺利开展');
+    expect(text).toContain('本卦：火水未济');
+    expect(text).toContain('互卦：');
+    expect(text).toContain('变卦：');
+    expect(text).toContain('动爻：第3爻');
+    expect(text).toContain('用克体');
     expect(text).not.toContain('undefined');
   });
 
