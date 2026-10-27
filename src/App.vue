@@ -119,7 +119,7 @@ function toggleLocale() {
   document.documentElement.lang = locale.value;
 }
 
-type UiTheme = 'default' | 'ink' | 'inkstone' | 'mist' | 'dusk';
+type UiTheme = 'default' | 'ink' | 'inkstone' | 'mist' | 'dusk' | 'bamboo' | 'agarwood' | 'amber';
 const uiTheme = ref<UiTheme>('default');
 const themeModalOpen = ref(false);
 
@@ -159,6 +159,24 @@ const themeOptions: Array<{
     nameKey: 'theme.name.dusk',
     descKey: 'theme.desc.dusk',
     swatches: ['#f3ebe6', '#fbf6f2', '#8a5f73']
+  },
+  {
+    id: 'bamboo',
+    nameKey: 'theme.name.bamboo',
+    descKey: 'theme.desc.bamboo',
+    swatches: ['#eef2ec', '#fafcf9', '#2e6b56']
+  },
+  {
+    id: 'agarwood',
+    nameKey: 'theme.name.agarwood',
+    descKey: 'theme.desc.agarwood',
+    swatches: ['#171311', '#26201c', '#d49b54']
+  },
+  {
+    id: 'amber',
+    nameKey: 'theme.name.amber',
+    descKey: 'theme.desc.amber',
+    swatches: ['#f4eee4', '#fdfaf5', '#9c5a25']
   }
 ];
 

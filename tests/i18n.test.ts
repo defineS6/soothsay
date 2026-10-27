@@ -12,5 +12,9 @@ describe('轻量国际化', () => {
     expect(translate('en-US', 'nav.chart')).toBe('Chart');
     expect(translate('zh-CN', 'common.items', { count: 3 })).toBe('3 条');
     expect(translate('en-US', 'home.askMaster', { master: 'Aster' })).toBe('Ask Aster');
+    expect(translate('zh-CN', 'theme.name.bamboo')).toBe('竹涧');
+    expect(translate('zh-CN', 'theme.name.agarwood')).toBe('沉香');
+    expect(translate('zh-CN', 'theme.name.amber')).toBe('琥珀');
+    expect(translate('en-US', 'theme.name.bamboo')).toBe('Bamboo');
   });
 });

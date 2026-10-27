@@ -190,6 +190,86 @@
   --focus-ring: 0 0 0 3px rgba(126, 82, 107, 0.18);
 }
 
+/* —— 扩展主题：竹涧（浅苔宣纸 + 苍竹点青） —— */
+[data-theme="bamboo"] {
+  color-scheme: light;
+  --bg: #eef2ec;
+  --bg-soft: #e1e8de;
+  --surface: #fafcf9;
+  --surface-raised: #f2f6f0;
+  --panel-bg: rgba(250, 252, 249, 0.94);
+  --wash-rgb: 238, 242, 236;
+  --ink: #16211c;
+  --ink-soft: #394a42;
+  --muted: #687a70;
+  --line: #d3ddd0;
+  --line-soft: #e3ebe0;
+  --accent: #2e6b56;
+  --accent-strong: #235342;
+  --accent-soft: rgba(46, 107, 86, 0.11);
+  --primary-bg: #234f3f;
+  --primary-hover: #1b3d31;
+  --primary-ink: #fafcf9;
+  --danger: #9f2f2f;
+  --danger-soft: rgba(159, 47, 47, 0.1);
+  --focus-ring: 0 0 0 3px rgba(46, 107, 86, 0.18);
+}
+
+/* —— 扩展主题：沉香（乌木暖炭 + 泥金点烛） —— */
+[data-theme="agarwood"] {
+  color-scheme: dark;
+  --bg: #171311;
+  --bg-soft: #221c19;
+  --surface: #26201c;
+  --surface-raised: #302823;
+  --panel-bg: rgba(38, 32, 28, 0.94);
+  --wash-rgb: 23, 19, 17;
+  --ink: #f5ede3;
+  --ink-soft: #d6c7b8;
+  --muted: #9c8b7a;
+  --line: #3d332c;
+  --line-soft: #312923;
+  --accent: #d49b54;
+  --accent-strong: #e3b06e;
+  --accent-soft: rgba(212, 155, 84, 0.15);
+  --primary-bg: #c98a42;
+  --primary-hover: #da9c54;
+  --primary-ink: #171311;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.32);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-paper: 0 12px 32px rgba(0, 0, 0, 0.46);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--line);
+  --focus-ring: 0 0 0 3px rgba(212, 155, 84, 0.24);
+}
+
+/* —— 扩展主题：琥珀（善本麻纸 + 岩茶温润） —— */
+[data-theme="amber"] {
+  color-scheme: light;
+  --bg: #f4eee4;
+  --bg-soft: #e9dfd0;
+  --surface: #fdfaf5;
+  --surface-raised: #f7f1e7;
+  --panel-bg: rgba(253, 250, 245, 0.94);
+  --wash-rgb: 244, 238, 228;
+  --ink: #231b14;
+  --ink-soft: #4c3e32;
+  --muted: #827162;
+  --line: #dfd3c2;
+  --line-soft: #ece2d4;
+  --accent: #9c5a25;
+  --accent-strong: #7e471b;
+  --accent-soft: rgba(156, 90, 37, 0.11);
+  --primary-bg: #7c4419;
+  --primary-hover: #633512;
+  --primary-ink: #fdfaf5;
+  --danger: #9f2f2f;
+  --danger-soft: rgba(159, 47, 47, 0.1);
+  --focus-ring: 0 0 0 3px rgba(156, 90, 37, 0.18);
+}
+
 /* ============================================================
    1. 全局重置与基础交互元素
    ============================================================ */
@@ -1966,9 +2046,9 @@ input[type="file"] {
 }
 
 .theme-modal {
-  width: min(420px, 100%);
-  max-height: min(620px, calc(100vh - 32px));
-  max-height: min(620px, calc(100dvh - 32px));
+  width: min(580px, 100%);
+  max-height: min(640px, calc(100vh - 32px));
+  max-height: min(640px, calc(100dvh - 32px));
 }
 
 .modal-heading {
@@ -2003,9 +2083,9 @@ input[type="file"] {
 
 /* 主题选择列表 */
 .theme-picker-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   overflow: auto;
   padding: 16px 20px;
 }
@@ -3342,6 +3422,10 @@ input[type="file"] {
 
   .modal-heading p {
     display: none;
+  }
+
+  .theme-picker-grid {
+    grid-template-columns: 1fr;
   }
 
   .form-grid {
